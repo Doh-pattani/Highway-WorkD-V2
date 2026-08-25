@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="HighwayWorkD">
+<meta name="theme-color" content="#1B4965">
+<link rel="manifest" href="manifest.json">
+<title>Highway WorkD - ระบบจัดการงานทางหลวง</title>
+
+<!-- ✅ ฟอนต์ภาษาไทยสวยๆ -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- ✅ Supabase SDK v2 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<style>
+:root {
+  --primary: #1B4965;
+  --primary-light: #2c6a94;
+  --bg-page: #f0f4f8;
+  --bg-card: #ffffff;
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+  --border-color: #d1d5db;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: "Sarabun", "Kanit", sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+/* ===== หน้าจอเริ่มต้น / Splash Screen ===== */
+#splashScreen {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.4s ease;
+}
+#splashScreen .logo {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#splashScreen .sub {
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+/* ===== เนื้อหาหลัก ===== */
+#mainContent { display: none; }
+
+.container { max-width: 960px; margin: 0 auto; padding: 1rem; }
+header {
+  text-align: center;
+  padding: 1rem 0;
+}
+header h1 {
+  font-size: 1.4rem;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.card {
+  background: var(--bg-card);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: none;
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-light); }
+.btn-success { background: #059669; color: #fff; }
+.btn-warning { background: #d97706; color: #fff; }
+.btn-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
+
+.form-row { margin-bottom: 0.75rem; }
+label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.95rem; }
+input, select, textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; }
+th, td {
+  padding: 0.6rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.9rem;
+}
+th { background: #eff6ff; color: var(--primary); font-weight: 600; }
+
+.empty { text-align: center; color: var(--text-muted); padding: 2rem; }
+.status-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+.status-draft { background: #e5e7eb; color: #374151; }
+status-progress { background: #dbeafe; color: #1e40af; }
+.status-done { background: #d1fae5; color: #065f46; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  th, td { padding: 0.4rem 0.3rem; font-size: 0.85rem; }
+  .btn { padding: 0.4rem 0.75rem; font-size: 0.9rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== หน้าจอเริ่มต้น ===== -->
+<div id="splashScreen">
+  <div class="logo">📋 HighwayWorkD</div>
+  <div class="sub">ระบบจัดการงานทางหลวง</div>
+</div>
+
+<!-- ===== เนื้อหาหลัก ===== -->
+<div id="mainContent">
+  <div class="container">
+    <header>
+      <h1>📋 HighwayWorkD</h1>
+      <p style="color:var(--text-muted);font-size:0.95rem;">ระบบจัดการข้อมูลโครงการและงานทางหลวง</p>
+    </header>
+
+    <!-- === ปุ่มเมนูหลัก === -->
+    <div class="card">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="showAddForm()">➕ เพิ่มโครงการ</button>
+        <button class="btn" onclick="exportData()">📤 ส่งออกข้อมูล</button>
+        <button class="btn" onclick="importData()">📥 นำเข้าข้อมูล</button>
+        <button class="btn" onclick="syncSupabase()">☁️ ซิงค์ข้อมูล</button>
+      </div>
+    </div>
+
+    <!-- === ฟอร์มเพิ่ม/แก้ไข === -->
+    <div class="card" id="formCard" style="display:none;">
+      <h3 id="formTitle">เพิ่มโครงการใหม่</h3>
+      <form id="projectForm">
+        <input type="hidden" id="editId">
+        <div class="form-row">
+          <label>ชื่อโครงการ</label>
+          <input type="text" id="projectName" required placeholder="กรอกชื่อโครงการ...">
+        </div>
+        <div class="form-row">
+          <label>สายทาง/เส้นทาง</label>
+          <input type="text" id="routeName" placeholder="ชื่อสายทาง กม.เริ่ม-กม.สิ้นสุด">
+        </div>
+        <div class="form-row">
+          <label>สถานะโครงการ</label>
+          <select id="projectStatus">
+            <option value="draft">📝 ร่าง</option>
+            <option value="progress">🔄 กำลังดำเนินงาน</option>
+            <option value="done">✅ แล้วเสร็จ</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>หมายเหตุ / ความก้าวหน้า</label>
+          <textarea id="projectNote" rows="3" placeholder="บันทึกความก้าวหน้า..."></textarea>
+        </div>
+        <div class="btn-group">
+          <button type="submit" class="btn btn-success">💾 บันทึก</button>
+          <button type="button" class="btn" onclick="hideForm()">❌ ยกเลิก</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- === ตารางแสดงรายการ === -->
+    <div class="card">
+      <h3>รายการโครงการ</h3>
+      <div id="projectList"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==========================================================
+// ⚙️ ตั้งค่า Supabase — กรอกข้อมูลจากโปรเจกต์ของคุณ
+// ==========================================================
+const SUPABASE_URL = "https://xsitjazwsaprzcwnksyu.supabase.co";       // ← วาง URL ที่นี่
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzaXRqYXp3c2Fwcnpjd25rc3l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NTc1NjMsImV4cCI6MjEwMjUzMzU2M30.XenCi59dbIR1aS0udfCOdu6nxJt6eWzTvoRDsLkZ2A8";  // ← วาง Anon Key ที่นี่
+
+// ============ ตัวแปรกลาง ============
+let supabase = null;
+let projects = [];
+const STORAGE_KEY = "highway_workd_projects";
+
+// ============ หน้าจอเริ่มต้น ============
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    document.getElementById('splashScreen').style.opacity = '0';
+    setTimeout(() => {
+      document.getElementById('splashScreen').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+    }, 400);
+  }, 1200);
+
+  initSupabase();
+  loadData();
+  renderList();
+
+  // จัดการฟอร์ม
+  document.getElementById('projectForm').addEventListener('submit', saveProject);
+});
+
+// ============ เชื่อมต่อ Supabase ============
+function initSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    console.log("ℹ️ ยังไม่ได้ตั้งค่า Supabase — ใช้เฉพาะที่เก็บในเครื่อง");
+    return;
+  }
+  if (typeof supabase !== "undefined" && window.supabase.createClient) {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log("✅ เชื่อมต่อ Supabase สำเร็จ");
+  }
+}
+
+// ============ โหลดข้อมูล ============
+function loadData() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try { projects = JSON.parse(saved); }
+    catch { projects = []; }
+  }
+}
+
+// ============ บันทึกข้อมูล ============
+function saveToLocal() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+}
+
+// ============ แสดงรายการ ============
+function renderList() {
+  const container = document.getElementById('projectList');
+  if (projects.length === 0) {
+    container.innerHTML = '<div class="empty">ยังไม่มีรายการโครงการ</div>';
+    return;
+  }
+
+  let html = '<table><thead><tr><th>ชื่อโครงการ</th><th>สายทาง</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody>';
+  projects.forEach((p, i) => {
+    const statusText = { draft: '📝 ร่าง', progress: '🔄 กำลังดำเนินงาน', done: '✅ แล้วเสร็จ' }[p.status || 'draft'];
+    html += `
+      <tr>
+        <td>${escapeHtml(p.name || '')}</td>
+        <td>${escapeHtml(p.route || '')}</td>
+        <td><span class="status-badge status-${p.status || 'draft'}">${statusText}</span></td>
+        <td>
+          <button class="btn" style="padding:0.25rem 0.5rem;font-size:0.85rem;" onclick="editProject(${i})">✏️</button>
+          <button class="btn" style="padding:0.25rem 0.5rem;font-size:0.85rem;background:#fee2e2;color:#b91c1c;" onclick="deleteProject(${i})">🗑️</button>
+        </td>
+      </tr>
+    `;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+// ============ ฟอร์ม ============
+function showAddForm() {
+  document.getElementById('formTitle').textContent = 'เพิ่มโครงการใหม่';
+  document.getElementById('editId').value = '';
+  document.getElementById('projectName').value = '';
+  document.getElementById('routeName').value = '';
+  document.getElementById('projectStatus').value = 'draft';
+  document.getElementById('projectNote').value = '';
+  document.getElementById('formCard').style.display = 'block';
+}
+
+function hideForm() {
+  document.getElementById('formCard').style.display = 'none';
+}
+
+function saveProject(e) {
+  e.preventDefault();
+  const editId = document.getElementById('editId').value;
+  const data = {
+    name: document.getElementById('projectName').value.trim(),
+    route: document.getElementById('routeName').value.trim(),
+    status: document.getElementById('projectStatus').value,
+    note: document.getElementById('projectNote').value.trim(),
+    updatedAt: new Date().toISOString()
+  };
+
+  if (editId === '') {
+    data.createdAt = data.updatedAt;
+    projects.push(data);
+  } else {
+    projects[parseInt(editId)] = { ...projects[parseInt(editId)], ...data };
+  }
+
+  saveToLocal();
+  renderList();
+  hideForm();
+}
+
+function editProject(idx) {
+  const p = projects[idx];
+  document.getElementById('formTitle').textContent = 'แก้ไขโครงการ';
+  document.getElementById('editId').value = idx;
+  document.getElementById('projectName').value = p.name || '';
+  document.getElementById('routeName').value = p.route || '';
+  document.getElementById('projectStatus').value = p.status || 'draft';
+  document.getElementById('projectNote').value = p.note || '';
+  document.getElementById('formCard').style.display = 'block';
+}
+
+function deleteProject(idx) {
+  if (confirm('ยืนยันการลบรายการนี้?')) {
+    projects.splice(idx, 1);
+    saveToLocal();
+    renderList();
+  }
+}
+
+// ============ นำเข้า-ส่งออก ============
+function exportData() {
+  const blob = new Blob([JSON.stringify(projects, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `highway-workd-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        if (!Array.isArray(imported)) throw new Error('ไม่ใช่รายการข้อมูล');
+        // ✅ ผสานข้อมูล ไม่ทับของเดิม
+        const existingKeys = new Set(projects.map(p => `${p.name}||${p.route}`));
+        let added = 0;
+        imported.forEach(p => {
+          const key = `${p.name}||${p.route}`;
+          if (!existingKeys.has(key)) {
+            projects.push(p);
+            existingKeys.add(key);
+            added++;
+          }
+        });
+        saveToLocal();
+        renderList();
+        alert(`✅ นำเข้าสำเร็จ เพิ่ม ${added} รายการ (ข้อมูลซ้ำไม่ถูกทับ)`);
+      } catch (err) {
+        alert('❌ ไฟล์ข้อมูลไม่ถูกต้อง');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ============ ซิงค์ Supabase ============
+async function syncSupabase() {
+  if (!supabase) {
+    alert('⚠️ ยังไม่ได้ตั้งค่า Supabase URL และ Anon Key');
+    return;
+  }
+  alert('🔄 ฟังก์ชันซิงค์กับ Supabase จะเพิ่มให้เมื่อตั้งค่าข้อมูลแล้วครับ');
+}
+
+// ============ เครื่องมือ ============
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
