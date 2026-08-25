@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous">
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- ✅ Supabase SDK v2 -->
+<!-- ✅ Supabase SDK v2 (จะสร้างตัวแปร global ชื่อ supabase) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
 <style>
@@ -267,14 +267,15 @@ th { background: #eff6ff; color: var(--primary); font-weight: 600; }
 <script>
 // ==========================================================
 // ⚙️ ตั้งค่า Supabase
+// ⚠️ ใช้ชื่อตัวแปร supabaseClient เพื่อไม่ให้ชนกับ global ชื่อ supabase จาก SDK
 // ==========================================================
 const SUPABASE_URL = "https://xsitjazwsaprzcwnksyu.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzaXRqYXp3c2Fwcnpjd25rc3l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NTc1NjMsImV4cCI6MjEwMjUzMzU2M30.XenCi59dbIR1aS0udfCOdu6nxJt6eWzTvoRDsLkZ2A8";
 const STORAGE_KEY = 'highway_workd_data';
-const TABLE_NAME = 'construction_projects'; // ⚠️ ต้องตรงกับชื่อตารางใน Supabase
+const TABLE_NAME = 'construction_projects';
 
 // ============ ตัวแปรกลาง ============
-let supabaseClient = null;
+let supabaseClient = null; // ✅ เปลี่ยนชื่อไม่ให้ชนกับ global
 let projects = [];
 let isOnline = false;
 
@@ -315,13 +316,14 @@ async function initSupabase() {
     return;
   }
 
+  // ✅ ใช้ window.supabase (global จาก SDK) เพื่อสร้าง client
   if (typeof window.supabase !== "undefined" && window.supabase.createClient) {
     try {
       supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       console.log("✅ สร้าง Supabase client สำเร็จ");
 
       // ทดสอบการเชื่อมต่อจริง
-      const { data, error } = await supabase.from(TABLE_NAME).select('count').limit(1);
+      const { data, error } = await supabaseClient.from(TABLE_NAME).select('count').limit(1);
       if (error) {
         console.warn("⚠️ ไม่สามารถเข้าถึงตารางได้:", error.message);
         setConnectionStatus(false, "ตารางไม่พร้อมใช้งาน");
@@ -528,7 +530,7 @@ function importData() {
 
 // ============ ซิงค์ Supabase: ดึงข้อมูลลงมา ============
 async function syncFromSupabase() {
-  if (!supabase) {
+  if (!supabaseClient) {
     showToast('⚠️ ยังไม่ได้ตั้งค่าการเชื่อมต่อ', 'error');
     return;
   }
@@ -538,7 +540,7 @@ async function syncFromSupabase() {
   btn.textContent = '⏳ กำลังดึงข้อมูล...';
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from(TABLE_NAME)
       .select('*')
       .order('created_at', { ascending: false });
@@ -546,7 +548,6 @@ async function syncFromSupabase() {
     if (error) throw error;
 
     if (data && data.length > 0) {
-      // แปลงข้อมูลจาก Supabase มาใช้ในแอป
       const cloudProjects = data.map(row => ({
         cloud_id: row.id,
         name: row.name || '',
@@ -557,20 +558,17 @@ async function syncFromSupabase() {
         updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : new Date().toISOString()
       }));
 
-      // ผสานข้อมูล: ข้อมูลจาก Cloud จะทับข้อมูลในเครื่องที่มี cloud_id ตรงกัน
       const existingCloudIds = new Set(projects.filter(p => p.cloud_id).map(p => p.cloud_id));
       let added = 0, updated = 0;
 
       cloudProjects.forEach(cp => {
         if (existingCloudIds.has(cp.cloud_id)) {
-          // อัปเดตรายการที่มีอยู่แล้ว
           const idx = projects.findIndex(p => p.cloud_id === cp.cloud_id);
           if (idx !== -1) {
             projects[idx] = cp;
             updated++;
           }
         } else {
-          // เพิ่มรายการใหม่
           projects.push(cp);
           added++;
         }
@@ -593,7 +591,7 @@ async function syncFromSupabase() {
 
 // ============ ซิงค์ Supabase: ส่งข้อมูลขึ้นไป ============
 async function syncToSupabase() {
-  if (!supabase) {
+  if (!supabaseClient) {
     showToast('⚠️ ยังไม่ได้ตั้งค่าการเชื่อมต่อ', 'error');
     return;
   }
@@ -611,7 +609,6 @@ async function syncToSupabase() {
 
   try {
     for (const p of projects) {
-      // เตรียมข้อมูลให้ตรงกับโครงสร้างตาราง
       const rowData = {
         name: p.name,
         route: p.route || '',
@@ -620,8 +617,7 @@ async function syncToSupabase() {
       };
 
       if (p.cloud_id) {
-        // มีอยู่แล้วใน Cloud → อัปเดต
-        const { error } = await supabase
+        const { error } = await supabaseClient
           .from(TABLE_NAME)
           .update(rowData)
           .eq('id', p.cloud_id);
@@ -633,8 +629,7 @@ async function syncToSupabase() {
           success++;
         }
       } else {
-        // ยังไม่มีใน Cloud → เพิ่มใหม่
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from(TABLE_NAME)
           .insert(rowData)
           .select();
@@ -643,13 +638,13 @@ async function syncToSupabase() {
           console.warn(`⚠️ เพิ่มไม่สำเร็จ (${p.name}):`, error.message);
           failed++;
         } else if (data && data[0]) {
-          p.cloud_id = data[0].id; // เก็บ id จาก Cloud
+          p.cloud_id = data[0].id;
           success++;
         }
       }
     }
 
-    saveToLocal(); // บันทึก cloud_id ที่เพิ่งได้มา
+    saveToLocal();
     renderList();
     showToast(`✅ ส่งข้อมูลสำเร็จ: ${success} รายการ, ล้มเหลว: ${failed} รายการ`, success > 0 ? 'success' : 'error');
   } catch (e) {
