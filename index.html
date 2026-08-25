@@ -436,7 +436,7 @@ function saveProject(e) {
     name: document.getElementById('projectName').value.trim(),
     route: document.getElementById('routeName').value.trim(),
     status: document.getElementById('projectStatus').value,
-    note: document.getElementById('projectNote').value.trim(),
+    detail: document.getElementById('projectNote').value.trim(),
     updatedAt: new Date().toISOString()
   };
 
@@ -466,7 +466,7 @@ function editProject(idx) {
   document.getElementById('projectName').value = p.name || '';
   document.getElementById('routeName').value = p.route || '';
   document.getElementById('projectStatus').value = p.status || 'draft';
-  document.getElementById('projectNote').value = p.note || '';
+  document.getElementById('projectNote').value = p.detail || '';
   document.getElementById('formCard').style.display = 'block';
 }
 
@@ -553,7 +553,7 @@ async function syncFromSupabase() {
         name: row.name || '',
         route: row.route || '',
         status: row.status || 'draft',
-        note: row.note || '',
+        detail: row.detail || '',
         createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
         updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : new Date().toISOString()
       }));
@@ -613,7 +613,7 @@ async function syncToSupabase() {
         name: p.name,
         route: p.route || '',
         status: p.status || 'draft',
-        note: p.note || ''
+        detail: p.detail || ''
       };
 
       if (p.cloud_id) {
