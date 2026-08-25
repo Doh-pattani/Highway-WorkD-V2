@@ -274,7 +274,7 @@ const STORAGE_KEY = 'highway_workd_data';
 const TABLE_NAME = 'construction_projects'; // ⚠️ ต้องตรงกับชื่อตารางใน Supabase
 
 // ============ ตัวแปรกลาง ============
-let supabase = null;
+let supabaseClient = null;
 let projects = [];
 let isOnline = false;
 
@@ -317,7 +317,7 @@ async function initSupabase() {
 
   if (typeof window.supabase !== "undefined" && window.supabase.createClient) {
     try {
-      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       console.log("✅ สร้าง Supabase client สำเร็จ");
 
       // ทดสอบการเชื่อมต่อจริง
