@@ -396,7 +396,7 @@ function renderList() {
     html += `
       <tr>
         <td>${escapeHtml(p.name || '')} <small style="color:var(--text-muted)">${cloudIcon}</small></td>
-        <td>${escapeHtml(p.route || '')}</td>
+        <td>${escapeHtml(p.route_no || '')}</td>
         <td><span class="status-badge status-${p.status || 'draft'}">${statusText}</span></td>
         <td>
           <button class="btn" style="padding:0.25rem 0.5rem;font-size:0.85rem;" onclick="editProject(${i})" title="แก้ไข">✏️</button>
@@ -434,7 +434,7 @@ function saveProject(e) {
 
   const data = {
     name: document.getElementById('projectName').value.trim(),
-    route: document.getElementById('routeName').value.trim(),
+    route_no: document.getElementById('routeName').value.trim(),
     status: document.getElementById('projectStatus').value,
     detail: document.getElementById('projectNote').value.trim(),
     updatedAt: new Date().toISOString()
@@ -464,7 +464,7 @@ function editProject(idx) {
   document.getElementById('editId').value = idx;
   document.getElementById('editCloudId').value = p.cloud_id || '';
   document.getElementById('projectName').value = p.name || '';
-  document.getElementById('routeName').value = p.route || '';
+  document.getElementById('routeName').value = p.route_no || '';
   document.getElementById('projectStatus').value = p.status || 'draft';
   document.getElementById('projectNote').value = p.detail || '';
   document.getElementById('formCard').style.display = 'block';
@@ -505,10 +505,10 @@ function importData() {
         const imported = JSON.parse(ev.target.result);
         if (!Array.isArray(imported)) throw new Error('ไม่ใช่รายการข้อมูล');
 
-        const existingKeys = new Set(projects.map(p => `${p.name}||${p.route}`));
+        const existingKeys = new Set(projects.map(p => `${p.name}||${p.route_no}`));
         let added = 0;
         imported.forEach(p => {
-          const key = `${p.name}||${p.route}`;
+          const key = `${p.name}||${p.route_no}`;
           if (!existingKeys.has(key)) {
             projects.push(p);
             existingKeys.add(key);
@@ -551,7 +551,7 @@ async function syncFromSupabase() {
       const cloudProjects = data.map(row => ({
         cloud_id: row.id,
         name: row.name || '',
-        route: row.route || '',
+        route_no: row.route_no || '',
         status: row.status || 'draft',
         detail: row.detail || '',
         createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
@@ -611,7 +611,7 @@ async function syncToSupabase() {
     for (const p of projects) {
       const rowData = {
         name: p.name,
-        route: p.route || '',
+        route_no: p.route_no || '',
         status: p.status || 'draft',
         detail: p.detail || ''
       };
