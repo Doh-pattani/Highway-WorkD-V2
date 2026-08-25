@@ -9,7 +9,6 @@
 <meta name="apple-mobile-web-app-title" content="HighwayWorkD">
 <meta name="theme-color" content="#1B4965">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" href="favicon.ico" type="image/x-icon">
 <title>Highway WorkD - ระบบจัดการงานทางหลวง</title>
 
 <!-- ✅ ฟอนต์ภาษาไทยสวยๆ -->
@@ -217,10 +216,12 @@ status-progress { background: #dbeafe; color: #1e40af; }
 const SUPABASE_URL = "https://xsitjazwsaprzcwnksyu.supabase.co";       // ← วาง URL ที่นี่
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzaXRqYXp3c2Fwcnpjd25rc3l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NTc1NjMsImV4cCI6MjEwMjUzMzU2M30.XenCi59dbIR1aS0udfCOdu6nxJt6eWzTvoRDsLkZ2A8";  // ← วาง Anon Key ที่นี่
 
+const STORAGE_KEY = 'highway_workd_data';
+const TABLE_NAME = 'construction_projects';
+
 // ============ ตัวแปรกลาง ============
 let supabase = null;
 let projects = [];
-const STORAGE_KEY = "construction_projects";
 
 // ============ หน้าจอเริ่มต้น ============
 document.addEventListener('DOMContentLoaded', () => {
