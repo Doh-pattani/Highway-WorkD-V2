@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="HighwayWorkD">
+<meta name="theme-color" content="#1B4965">
+<link rel="manifest" href="manifest.json">
+<title>HighwayWorkD - ระบบจัดการงานทางหลวง</title>
+
+<!-- ฟอนต์ภาษาไทย -->
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Supabase SDK v2 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<style>
+:root {
+  --primary: #1B4965;
+  --primary-light: #2c6a94;
+  --bg-page: #f0f4f8;
+  --bg-card: #ffffff;
+  --text-main: #1f2937;
+  --text-muted: #6b7280;
+  --border-color: #d1d5db;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: "Sarabun", "Kanit", sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.5;
+}
+
+/* ===== หน้าจอเริ่มต้น ===== */
+#splashScreen {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.4s ease;
+}
+#splashScreen .logo {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#splashScreen .sub {
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+
+/* ===== เนื้อหาหลัก ===== */
+#mainContent { display: none; }
+.status-bar {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: 0.4rem 1rem; font-size: 0.85rem;
+  z-index: 100; text-align: center;
+}
+.status-online { background: #d1fae5; color: #065f46; }
+.status-offline { background: #fef3c7; color: #92400e; }
+
+.container { max-width: 1200px; margin: 0 auto; padding: 1rem; padding-top: 2.5rem; }
+header { text-align: center; padding: 1rem 0; }
+header h1 { font-size: 1.4rem; color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
+
+.card {
+  background: var(--bg-card); border-radius: 0.75rem;
+  box-shadow: var(--shadow-sm); padding: 1.25rem; margin-bottom: 1rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem; border-radius: 0.5rem; border: none;
+  font-family: inherit; font-size: 0.95rem; cursor: pointer; transition: background 0.2s;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: var(--primary-light); }
+.btn-success { background: #059669; color: #fff; }
+.btn-warning { background: #d97706; color: #fff; }
+.btn-danger { background: #dc2626; color: #fff; }
+.btn-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
+
+.form-row { margin-bottom: 0.75rem; }
+label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.95rem; }
+input, select, textarea {
+  width: 100%; padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color); border-radius: 0.375rem;
+  font-family: inherit; font-size: 0.95rem;
+}
+textarea { min-height: 80px; resize: vertical; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
+
+table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; font-size: 0.85rem; }
+th, td { padding: 0.5rem 0.4rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+th { background: #eff6ff; color: var(--primary); font-weight: 600; white-space: nowrap; }
+td { word-break: break-word; }
+
+.empty { text-align: center; color: var(--text-muted); padding: 2rem; }
+.status-badge {
+  display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 500;
+}
+.status-draft { background: #e5e7eb; color: #374151; }
+.status-progress { background: #dbeafe; color: #1e40af; }
+.status-done { background: #d1fae5; color: #065f46; }
+
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  padding: 0.75rem 1.25rem; border-radius: 0.5rem; color: #fff;
+  z-index: 9999; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+}
+.toast.show { opacity: 1; }
+.toast-success { background: #059669; }
+.toast-error { background: #dc2626; }
+.toast-info { background: var(--primary); }
+
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- สถานะการเชื่อมต่อ -->
+<div id="statusBar" class="status-bar status-offline">🔴 ออฟไลน์ — ใช้ข้อมูลในเครื่อง</div>
+
+<!-- ===== หน้าจอเริ่มต้น ===== -->
+<div id="splashScreen">
+  <div class="logo">📋 HighwayWorkD</div>
+  <div class="sub">ระบบจัดการงานทางหลวง</div>
+</div>
+
+<!-- ===== เนื้อหาหลัก ===== -->
+<div id="mainContent">
+  <div class="container">
+    <header>
+      <h1>📋 HighwayWorkD</h1>
+      <p style="color:var(--text-muted);font-size:0.95rem;">ระบบจัดการข้อมูลโครงการและงานทางหลวง</p>
+    </header>
+
+    <!-- ปุ่มเมนูหลัก -->
+    <div class="card">
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="showAddForm()">➕ เพิ่มโครงการ</button>
+        <button class="btn" onclick="exportData()">📤 ส่งออก JSON</button>
+        <button class="btn" onclick="importData()">📥 นำเข้า JSON</button>
+        <button class="btn btn-success" onclick="pushToSupabase()">⬆️ ส่งขึ้น Cloud</button>
+        <button class="btn" onclick="pullFromSupabase()">⬇️ ดึงจาก Cloud</button>
+      </div>
+    </div>
+
+    <!-- ฟอร์มเพิ่ม/แก้ไข -->
+    <div class="card" id="formCard" style="display:none;">
+      <h3 id="formTitle">เพิ่มโครงการใหม่</h3>
+      <form id="projectForm">
+        <input type="hidden" id="editId">
+        <div class="form-grid">
+          <div class="form-row">
+            <label>ชื่อโครงการ *</label>
+            <input type="text" id="f_name" required placeholder="ชื่อโครงการ">
+          </div>
+          <div class="form-row">
+            <label>ปีงบประมาณ</label>
+            <input type="text" id="f_year" placeholder="เช่น 2570">
+          </div>
+          <div class="form-row">
+            <label>แหล่งทุน</label>
+            <input type="text" id="f_source" placeholder="เช่น งบประมาณแผ่นดิน">
+          </div>
+          <div class="form-row">
+            <label>สถานะ</label>
+            <select id="f_status">
+              <option value="draft">📝 ร่าง</option>
+              <option value="progress">🔄 กำลังดำเนินงาน</option>
+              <option value="done">✅ แล้วเสร็จ</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>เลขที่สัญญา</label>
+            <input type="text" id="f_contract_no" placeholder="เลขที่สัญญา">
+          </div>
+          <div class="form-row">
+            <label>ผู้รับจ้าง</label>
+            <input type="text" id="f_contractor" placeholder="ชื่อผู้รับจ้าง">
+          </div>
+          <div class="form-row">
+            <label>หมายเลขสายทาง</label>
+            <input type="text" id="f_route_no" placeholder="เช่น ทล.4, ทล.401">
+          </div>
+          <div class="form-row">
+            <label>ชื่อช่วงทาง</label>
+            <input type="text" id="f_section_name" placeholder="ชื่อช่วง/ส่วนงาน">
+          </div>
+          <div class="form-row">
+            <label>ช่วงกิโลเมตร</label>
+            <input type="text" id="f_km_range" placeholder="เช่น กม.0+000 - กม.5+200">
+          </div>
+          <div class="form-row">
+            <label>ความก้าวหน้า (%)</label>
+            <input type="number" id="f_progress" min="0" max="100" value="0">
+          </div>
+          <div class="form-row">
+            <label>งบประมาณทั้งหมด</label>
+            <input type="number" step="0.01" id="f_budget" placeholder="0.00">
+          </div>
+          <div class="form-row">
+            <label>จ่ายเงินแล้ว</label>
+            <input type="number" step="0.01" id="f_disbursed" placeholder="0.00">
+          </div>
+        </div>
+        <div class="form-row">
+          <label>รายละเอียด / หมายเหตุ</label>
+          <textarea id="f_detail" placeholder="บันทึกรายละเอียด..."></textarea>
+        </div>
+        <div class="form-row">
+          <label>รายชื่อบุคลากร (JSON)</label>
+          <textarea id="f_persons" placeholder='[{"name":"สมชาย","role":"ผู้ควบคุมงาน"}]'></textarea>
+        </div>
+        <div class="btn-group">
+          <button type="submit" class="btn btn-success">💾 บันทึก</button>
+          <button type="button" class="btn" onclick="hideForm()">❌ ยกเลิก</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- ตารางแสดงรายการ -->
+    <div class="card">
+      <h3>รายการโครงการ <span id="rowCount" style="color:var(--text-muted);font-size:0.9rem;"></span></h3>
+      <div id="projectList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- แจ้งเตือน -->
+<div id="toast" class="toast"></div>
+
+<script>
+// ==========================================================
+// ⚙️ ตั้งค่า Supabase
+// ==========================================================
+const SUPABASE_URL = "https://xsitjazwsaprzcwnksyu.supabase.co";       // ← วาง URL ที่นี่
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzaXRqYXp3c2Fwcnpjd25rc3l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NTc1NjMsImV4cCI6MjEwMjUzMzU2M30.XenCi59dbIR1aS0udfCOdu6nxJt6eWzTvoRDsLkZ2A8";  // ← วาง Anon Key ที่นี่
+const STORAGE_KEY = "highway_workd_data";
+const TABLE_NAME = "construction_projects";
+
+// ============ ตัวแปรกลาง ============
+let supabaseClient = null;
+let projects = [];
+
+
+// ============ หน้าจอเริ่มต้น & เริ่มระบบ ============
+document.addEventListener('DOMContentLoaded', () => {
+  // แปลงข้อมูลเก่าให้ตรงกับฟิลด์ใหม่
+  migrateOldData();
+
+  setTimeout(() => {
+    document.getElementById('splashScreen').style.opacity = '0';
+    setTimeout(() => {
+      document.getElementById('splashScreen').style.display = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+    }, 400);
+  }, 1000);
+
+  initSupabase();
+  loadData();
+  renderList();
+
+  document.getElementById('projectForm').addEventListener('submit', saveProject);
+});
+
+// ============ เชื่อมต่อ Supabase ============
+function initSupabase() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    updateStatusBar(false, '⚠️ ยังไม่ได้ตั้งค่า Supabase');
+    return;
+  }
+  if (window.supabase?.createClient) {
+    try {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      updateStatusBar(true, '🟢 เชื่อมต่อ Cloud สำเร็จ');
+    } catch (e) {
+      updateStatusBar(false, '🔴 ไม่สามารถเชื่อมต่อ Supabase');
+    }
+  }
+}
+
+function updateStatusBar(online, text) {
+  const bar = document.getElementById('statusBar');
+  bar.className = `status-bar ${online ? 'status-online' : 'status-offline'}`;
+  bar.textContent = text;
+}
+
+// ============ โหลด/บันทึก ข้อมูลในเครื่อง ============
+function loadData() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try { projects = JSON.parse(saved); }
+    catch { projects = []; }
+  }
+}
+function saveToLocal() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+}
+
+// ============ แสดงรายการ ============
+function renderList() {
+  const container = document.getElementById('projectList');
+  document.getElementById('rowCount').textContent = `(${projects.length} รายการ)`;
+  if (projects.length === 0) {
+    container.innerHTML = '<div class="empty">ยังไม่มีรายการโครงการ</div>';
+    return;
+  }
+
+  let html = `<table>
+    <thead>
+      <tr>
+        <th>ชื่อโครงการ</th>
+        <th>ปี</th>
+        <th>สายทาง</th>
+        <th>สถานะ</th>
+        <th>ความก้าวหน้า</th>
+        <th>งบประมาณ</th>
+        <th>จัดการ</th>
+      </tr>
+    </thead><tbody>`;
+
+  projects.forEach((p, i) => {
+    const statusText = { draft: '📝 ร่าง', progress: '🔄 กำลังดำเนินงาน', done: '✅ แล้วเสร็จ' }[p.status || 'draft'];
+    html += `
+      <tr>
+        <td>${escapeHtml(p.name || '')}</td>
+        <td>${escapeHtml(p.year || '')}</td>
+        <td>${escapeHtml(p.route_no || '')}</td>
+        <td><span class="status-badge status-${p.status || 'draft'}">${statusText}</span></td>
+        <td>${p.progress || 0}%</td>
+        <td>${p.budget ? Number(p.budget).toLocaleString() : '-'}</td>
+        <td>
+          <button class="btn" style="padding:0.25rem 0.4rem;font-size:0.8rem;" onclick="editProject(${i})">✏️</button>
+          <button class="btn btn-danger" style="padding:0.25rem 0.4rem;font-size:0.8rem;" onclick="deleteProject(${i})">🗑️</button>
+        </td>
+      </tr>
+    `;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+// ============ ฟอร์ม เพิ่ม/แก้ไข ============
+function showAddForm() {
+  document.getElementById('formTitle').textContent = 'เพิ่มโครงการใหม่';
+  document.getElementById('editId').value = '';
+  clearForm();
+  document.getElementById('formCard').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function hideForm() {
+  document.getElementById('formCard').style.display = 'none';
+  clearForm();
+}
+function clearForm() {
+  document.getElementById('projectForm').reset();
+}
+function saveProject(e) {
+  e.preventDefault();
+  const editId = document.getElementById('editId').value;
+
+  // อ่านค่าจากฟอร์ม
+  let personsVal = [];
+  try {
+    const raw = document.getElementById('f_persons').value.trim();
+    if (raw) personsVal = JSON.parse(raw);
+  } catch {}
+
+  const data = {
+    name: document.getElementById('f_name').value.trim(),
+    year: document.getElementById('f_year').value.trim(),
+    source: document.getElementById('f_source').value.trim(),
+    status: document.getElementById('f_status').value,
+    contractor: document.getElementById('f_contractor').value.trim(),
+    contract_no: document.getElementById('f_contract_no').value.trim(),
+    route_no: document.getElementById('f_route_no').value.trim(),
+    section_name: document.getElementById('f_section_name').value.trim(),
+    km_range: document.getElementById('f_km_range').value.trim(),
+    progress: Number(document.getElementById('f_progress').value) || 0,
+    budget: document.getElementById('f_budget').value ? Number(document.getElementById('f_budget').value) : null,
+    disbursed: document.getElementById('f_disbursed').value ? Number(document.getElementById('f_disbursed').value) : null,
+    persons: personsVal,
+    detail: document.getElementById('f_detail').value.trim(),
+    updated_at: new Date().toISOString()
+  };
+
+  if (editId === '') {
+    data.created_at = data.updated_at;
+    projects.push(data);
+  } else {
+    const idx = parseInt(editId);
+    projects[idx] = { ...projects[idx], ...data };
+  }
+
+  saveToLocal();
+  renderList();
+  hideForm();
+  showToast('✅ บันทึกสำเร็จ', 'success');
+}
+function editProject(idx) {
+  const p = projects[idx];
+  document.getElementById('formTitle').textContent = 'แก้ไขโครงการ';
+  document.getElementById('editId').value = idx;
+
+  document.getElementById('f_name').value = p.name || '';
+  document.getElementById('f_year').value = p.year || '';
+  document.getElementById('f_source').value = p.source || '';
+  document.getElementById('f_status').value = p.status || 'draft';
+  document.getElementById('f_contractor').value = p.contractor || '';
+  document.getElementById('f_contract_no').value = p.contract_no || '';
+  document.getElementById('f_route_no').value = p.route_no || '';
+  document.getElementById('f_section_name').value = p.section_name || '';
+  document.getElementById('f_km_range').value = p.km_range || '';
+  document.getElementById('f_progress').value = p.progress ?? 0;
+  document.getElementById('f_budget').value = p.budget ?? '';
+  document.getElementById('f_disbursed').value = p.disbursed ?? '';
+  document.getElementById('f_detail').value = p.detail || '';
+  document.getElementById('f_persons').value = p.persons ? JSON.stringify(p.persons, null, 2) : '';
+
+  document.getElementById('formCard').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function deleteProject(idx) {
+  if (confirm('ยืนยันการลบรายการนี้?')) {
+    projects.splice(idx, 1);
+    saveToLocal();
+    renderList();
+    showToast('🗑️ ลบข้อมูลแล้ว', 'info');
+  }
+}
+
+// ============ ส่งออก / นำเข้า ============
+function exportData() {
+  const blob = new Blob([JSON.stringify(projects, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `highway-workd-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📤 ส่งออกข้อมูลสำเร็จ', 'success');
+}
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const imported = JSON.parse(ev.target.result);
+        if (!Array.isArray(imported)) throw new Error('ไม่ใช่รายการข้อมูล');
+        // ผสานข้อมูล ไม่ทับของเดิม
+        const existingKeys = new Set(projects.map(p => `${p.name}||${p.route_no}||${p.contract_no}`));
+        let added = 0;
+        imported.forEach(p => {
+          const key = `${p.name}||${p.route_no}||${p.contract_no}`;
+          if (!existingKeys.has(key)) {
+            projects.push(p);
+            existingKeys.add(key);
+            added++;
+          }
+        });
+        saveToLocal();
+        renderList();
+        showToast(`✅ นำเข้าสำเร็จ เพิ่ม ${added} รายการ`, 'success');
+      } catch (err) {
+        showToast('❌ ไฟล์ข้อมูลไม่ถูกต้อง', 'error');
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+}
+
+// ============ ซิงค์กับ Supabase ============
+async function pushToSupabase() {
+  if (!supabaseClient) {
+    showToast('⚠️ ยังไม่ได้ตั้งค่า Supabase', 'error');
+    return;
+  }
+  showToast('⏳ กำลังส่งข้อมูล...', 'info');
+
+  let successCount = 0, failCount = 0;
+  for (const p of projects) {
+    try {
+      const { error } = await supabaseClient.from(TABLE_NAME).upsert({
+        name: p.name,
+        year: p.year || null,
+        source: p.source || null,
+        status: p.status || 'draft',
+        contractor: p.contractor || null,
+        contract_no: p.contract_no || null,
+        route_no: p.route_no || null,
+        section_name: p.section_name || null,
+        km_range: p.km_range || null,
+        progress: p.progress || 0,
+        budget: p.budget || null,
+        disbursed: p.disbursed || null,
+        persons: p.persons || [],
+        detail: p.detail || null,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'name,route_no,contract_no' });
+
+      if (error) {
+        console.error('Error:', error);
+        failCount++;
+      } else {
+        successCount++;
+      }
+    } catch { failCount++; }
+  }
+
+  showToast(`✅ ส่งขึ้นสำเร็จ ${successCount} รายการ${failCount>0 ? ` (ไม่สำเร็จ ${failCount})` : ''}`, successCount>0 ? 'success' : 'error');
+}
+
+async function pullFromSupabase() {
+  if (!supabaseClient) {
+    showToast('⚠️ ยังไม่ได้ตั้งค่า Supabase', 'error');
+    return;
+  }
+  showToast('⏳ กำลังดึงข้อมูล...', 'info');
+
+  try {
+    const { data, error } = await supabaseClient
+      .from(TABLE_NAME)
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    // ผสานข้อมูล ไม่ทับ
+    const existingKeys = new Set(projects.map(p => `${p.name}||${p.route_no}||${p.contract_no}`));
+    let added = 0;
+    data.forEach(row => {
+      const key = `${row.name}||${row.route_no}||${row.contract_no}`;
+      if (!existingKeys.has(key)) {
+        projects.push({
+          name: row.name,
+          year: row.year,
+          source: row.source,
+          status: row.status,
+          contractor: row.contractor,
+          contract_no: row.contract_no,
+          route_no: row.route_no,
+          section_name: row.section_name,
+          km_range: row.km_range,
+          progress: row.progress,
+          budget: row.budget,
+          disbursed: row.disbursed,
+          persons: row.persons,
+          detail: row.detail,
+          created_at: row.created_at,
+          updated_at: row.updated_at
+        });
+        existingKeys.add(key);
+        added++;
+      }
+    });
+
+    saveToLocal();
+    renderList();
+    showToast(`✅ ดึงข้อมูลสำเร็จ เพิ่ม ${added} รายการ`, 'success');
+  } catch (e) {
+    showToast(`❌ ดึงข้อมูลไม่สำเร็จ: ${e.message}`, 'error');
+  }
+}
+
+// ============ เครื่องมือ ============
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+function showToast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast toast-${type} show`;
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+</script>
+
+</body>
+</html>
