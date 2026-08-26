@@ -213,10 +213,11 @@ th { background: #eff6ff; color: var(--primary); font-weight: 600; }
     <div class="card">
       <div class="btn-group">
         <button class="btn btn-primary" onclick="showAddForm()">➕ เพิ่มโครงการ</button>
-        <button class="btn btn-success" onclick="syncFromSupabase()" id="btnDownload">⬇️ ดึงข้อมูลจาก Cloud</button>
-        <button class="btn btn-warning" onclick="syncToSupabase()" id="btnUpload">⬆️ ส่งข้อมูลขึ้น Cloud</button>
         <button class="btn" onclick="exportData()">📤 ส่งออกไฟล์</button>
         <button class="btn" onclick="importData()">📥 นำเข้าไฟล์</button>
+        <button class="btn btn-success" onclick="syncFromSupabase()" id="btnDownload">⬇️ ดึงข้อมูลจาก Cloud</button>
+        <button class="btn btn-warning" onclick="syncToSupabase()" id="btnUpload">⬆️ ส่งข้อมูลขึ้น Cloud</button>
+
       </div>
     </div>
 
@@ -656,6 +657,14 @@ async function syncToSupabase() {
   }
 }
 
+// ============ เครื่องมือ ============
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 // ============ แจ้งเตือน Toast ============
 function showToast(message, type = 'info') {
   const toast = document.getElementById('toast');
@@ -664,13 +673,6 @@ function showToast(message, type = 'info') {
   setTimeout(() => {
     toast.classList.remove('show');
   }, 3000);
-}
-
-// ============ เครื่องมือ ============
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
 }
 </script>
 
