@@ -454,52 +454,119 @@ function renderList() {
   container.innerHTML = html;
 }
 
-// ============ ฟอร์มเพิ่ม/แก้ไข ============
+// ฟังก์ชันเปิดฟอร์มเพิ่มโครงการ
 function showAddForm() {
   document.getElementById('formTitle').textContent = '➕ เพิ่มโครงการใหม่';
-  document.getElementById('editId').value = '';
-  document.getElementById('editCloudId').value = '';
-  document.getElementById('projectName').value = '';
-  document.getElementById('routeName').value = '';
-  document.getElementById('projectStatus').value = 'draft';
-  document.getElementById('projectNote').value = '';
-  document.getElementById('formCard').style.display = 'block';
-  document.getElementById('projectName').focus();
+  document.getElementById('f_id').value = '';
+  document.getElementById('f_contract_no').value = '';
+  document.getElementById('f_year').value = '2568';
+  document.getElementById('f_name').value = '';
+  document.getElementById('f_source').value = '';
+  document.getElementById('f_status').value = 'รอดำเนินการ';
+  document.getElementById('f_route_no').value = '';
+  document.getElementById('f_section_name').value = '';
+  document.getElementById('f_km_range').value = '';
+  document.getElementById('f_contractor').value = '';
+  document.getElementById('f_budget').value = '';
+  document.getElementById('f_disbursed').value = '';
+  document.getElementById('f_progress').value = '0';
+  document.getElementById('f_detail').value = '';
+  document.getElementById('f_persons').value = '';
+  
+  const formCard = document.getElementById('formCard');
+  formCard.style.display = 'block';
+  formCard.scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('f_name').focus();
+}
+
+// ฟังก์ชันบันทึกโครงการแบบป้องกันข้อผิดพลาด 100%
+async function saveProject(e) {
+  e.preventDefault();
+  
+  try {
+    const idVal = document.getElementById('f_id').value;
+    const now = new Date().toISOString();
+
+    // จัดการ JSON บุคลากรอย่างปลอดภัย
+    let personsData = [];
+    const rawPersons = (document.getElementById('f_persons').value || '').trim();
+    if (rawPersons) {
+      try {
+        personsData = JSON.parse(rawPersons);
+      } catch (err) {
+        showToast('⚠️ รูปแบบ JSON คณะกรรมการไม่ถูกต้อง (หากไม่แน่ใจให้เว้นว่างไว้ก่อน)', 'error');
+        return;
+      }
+    }
+
+    // แปลงค่าตัวเลขป้องกัน NaN
+    const rawBudget = parseFloat(document.getElementById('f_budget').value);
+    const rawDisbursed = parseFloat(document.getElementById('f_disbursed').value);
+    const rawProgress = parseInt(document.getElementById('f_progress').value);
+
+    const projectObj = {
+      contract_no: (document.getElementById('f_contract_no').value || '').trim(),
+      year: (document.getElementById('f_year').value || '').trim() || '2568',
+      name: (document.getElementById('f_name').value || '').trim(),
+      source: (document.getElementById('f_source').value || '').trim(),
+      status: document.getElementById('f_status').value || 'รอดำเนินการ',
+      route_no: (document.getElementById('f_route_no').value || '').trim(),
+      section_name: (document.getElementById('f_section_name').value || '').trim(),
+      km_range: (document.getElementById('f_km_range').value || '').trim(),
+      contractor: (document.getElementById('f_contractor').value || '').trim(),
+      budget: isNaN(rawBudget) ? 0 : rawBudget,
+      disbursed: isNaN(rawDisbursed) ? 0 : rawDisbursed,
+      progress: isNaN(rawProgress) ? 0 : Math.min(100, Math.max(0, rawProgress)),
+      detail: (document.getElementById('f_detail').value || '').trim(),
+      persons: personsData,
+      updated_at: now
+    };
+
+    if (idVal === '') {
+      // โหมดเพิ่มใหม่
+      projectObj.created_at = now;
+      
+      if (isOnline && supabaseClient) {
+        const { data, error } = await supabaseClient.from(TABLE_NAME).insert([projectObj]).select();
+        if (error) {
+          console.warn("⚠️ บันทึกขึ้น Supabase ล้มเหลว:", error.message);
+          projectObj.id = Date.now();
+        } else if (data && data[0]) {
+          projectObj.id = data[0].id;
+        }
+      } else {
+        projectObj.id = Date.now();
+      }
+
+      projects.unshift(projectObj);
+      showToast('✅ เพิ่มโครงการเรียบร้อย', 'success');
+    } else {
+      // โหมดแก้ไข
+      const idx = parseInt(idVal);
+      const existing = projects[idx];
+      const targetId = existing.id;
+      
+      projects[idx] = { ...existing, ...projectObj };
+
+      if (isOnline && supabaseClient && targetId) {
+        const { error } = await supabaseClient.from(TABLE_NAME).update(projectObj).eq('id', targetId);
+        if (error) console.warn("⚠️ อัปเดตขึ้น Supabase ล้มเหลว:", error.message);
+      }
+      showToast('✅ อัปเดตโครงการเรียบร้อย', 'success');
+    }
+
+    saveToLocal();
+    renderList();
+    hideForm();
+
+  } catch (err) {
+    console.error("❌ บันทึกโครงการล้มเหลว:", err);
+    showToast(`❌ เกิดข้อผิดพลาด: ${err.message}`, 'error');
+  }
 }
 
 function hideForm() {
   document.getElementById('formCard').style.display = 'none';
-}
-
-function saveProject(e) {
-  e.preventDefault();
-  const editId = document.getElementById('editId').value;
-  const editCloudId = document.getElementById('editCloudId').value;
-
-  const data = {
-    name: document.getElementById('projectName').value.trim(),
-    route_no: document.getElementById('routeName').value.trim(),
-    status: document.getElementById('projectStatus').value,
-    detail: document.getElementById('projectNote').value.trim(),
-    updatedAt: new Date().toISOString()
-  };
-
-  if (editCloudId) {
-    data.cloud_id = editCloudId;
-  }
-
-  if (editId === '') {
-    data.createdAt = data.updatedAt;
-    projects.push(data);
-    showToast('✅ เพิ่มโครงการสำเร็จ', 'success');
-  } else {
-    projects[parseInt(editId)] = { ...projects[parseInt(editId)], ...data };
-    showToast('✅ อัปเดตโครงการสำเร็จ', 'success');
-  }
-
-  saveToLocal();
-  renderList();
-  hideForm();
 }
 
 function editProject(idx) {
