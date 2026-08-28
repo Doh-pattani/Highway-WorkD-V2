@@ -11,10 +11,11 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.ico" type="image/x-icon">
 <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-<title>Highway WorkD - ระบบจัดการงานทางหลวง</title>
+<title>Highway WorkD - ระบบบริหารจัดการสารสนเทศทางหลวง</title>
 
 <!-- ✅ ฟอนต์ภาษาไทย -->
-<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <!-- ✅ Supabase SDK v2 (จะสร้างตัวแปร global ชื่อ supabase) -->
@@ -74,12 +75,9 @@ body {
 /* ===== เนื้อหาหลัก ===== */
 #mainContent { display: none; }
 
-.container { max-width: 960px; margin: 0 auto; padding: 1rem; }
+.container { max-width: 1100px; margin: 0 auto; padding: 1rem; }
 
-header {
-  text-align: center;
-  padding: 1rem 0;
-}
+header { text-align: center; padding: 1rem 0; }
 header h1 {
   font-size: 1.4rem;
   color: var(--primary);
@@ -110,12 +108,16 @@ header h1 {
 .btn {
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
-  border: none;
+  border: 1px solid transparent;
+  background: #e5e7eb;
+  color: var(--text-main);
   font-family: inherit;
   font-size: 0.95rem;
   cursor: pointer;
   transition: background 0.2s, opacity 0.2s;
 }
+.btn:hover:not(:disabled) { background: #d1d5db; }
+.btn:focus-visible { outline: 3px solid rgba(27,73,101,0.35); outline-offset: 2px; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background: var(--primary); color: #fff; }
 .btn-primary:hover:not(:disabled) { background: var(--primary-light); }
@@ -125,10 +127,19 @@ header h1 {
 .btn-warning:hover:not(:disabled) { background: #b45309; }
 .btn-danger { background: #dc2626; color: #fff; }
 .btn-danger:hover:not(:disabled) { background: #b91c1c; }
+.btn-icon { padding: 0.25rem 0.5rem; font-size: 0.85rem; }
 
 .btn-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
 
+/* ===== ฟอร์ม (คลาสที่หายไปในไฟล์เดิม) ===== */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
 .form-row { margin-bottom: 0.75rem; }
+.form-grid .form-row { margin-bottom: 0; }
 label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.95rem; }
 input, select, textarea {
   width: 100%;
@@ -138,21 +149,42 @@ input, select, textarea {
   font-family: inherit;
   font-size: 0.95rem;
   background: #fff;
+  color: inherit;
 }
+textarea { min-height: 80px; resize: vertical; }
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(27, 73, 101, 0.1);
 }
+.field-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+.field-error { font-size: 0.82rem; color: #b91c1c; margin-top: 0.2rem; }
 
-table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; }
+/* ===== ตาราง ===== */
+.table-wrap { overflow-x: auto; margin-top: 0.75rem; }
+table { width: 100%; border-collapse: collapse; }
 th, td {
   padding: 0.6rem 0.5rem;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
   font-size: 0.9rem;
+  white-space: nowrap;
 }
+td.wrap { white-space: normal; min-width: 200px; }
 th { background: #eff6ff; color: var(--primary); font-weight: 600; }
+td.num, th.num { text-align: right; }
+
+.progress-track {
+  display: inline-block;
+  width: 70px;
+  height: 7px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+.progress-fill { display: block; height: 100%; background: var(--primary-light); }
 
 .empty { text-align: center; color: var(--text-muted); padding: 2rem; }
 
@@ -167,11 +199,14 @@ th { background: #eff6ff; color: var(--primary); font-weight: 600; }
 .status-progress { background: #dbeafe; color: #1e40af; }
 .status-done { background: #d1fae5; color: #065f46; }
 
+.toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.toolbar input, .toolbar select { width: auto; min-width: 160px; flex: 1 1 160px; }
+
 .toast {
   position: fixed;
   bottom: 1rem;
   left: 50%;
-  transform: translateX(-50%) translateY(100px);
+  transform: translateX(-50%) translateY(150px);
   background: #1f2937;
   color: #fff;
   padding: 0.75rem 1.25rem;
@@ -179,14 +214,22 @@ th { background: #eff6ff; color: var(--primary); font-weight: 600; }
   z-index: 10000;
   transition: transform 0.3s ease;
   font-size: 0.9rem;
+  max-width: 90vw;
+  text-align: center;
 }
 .toast.show { transform: translateX(-50%) translateY(0); }
 .toast.success { background: #059669; }
 .toast.error { background: #dc2626; }
 .toast.info { background: #2563eb; }
 
-/* Responsive */
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+
 @media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
   th, td { padding: 0.4rem 0.3rem; font-size: 0.85rem; }
   .btn { padding: 0.4rem 0.75rem; font-size: 0.9rem; }
   #splashScreen .logo { font-size: 1.6rem; }
@@ -199,7 +242,7 @@ th { background: #eff6ff; color: var(--primary); font-weight: 600; }
 <div id="splashScreen">
   <div class="logo">🛣️ Highway WorkD</div>
   <div class="sub">ระบบบริหารจัดการสารสนเทศทางหลวง</div>
-  <div class="status" id="splashStatus">กำลังโหลด...</div>
+  <div class="status" id="splashStatus" role="status">กำลังโหลด...</div>
 </div>
 
 <!-- ===== เนื้อหาหลัก ===== -->
@@ -208,41 +251,52 @@ th { background: #eff6ff; color: var(--primary); font-weight: 600; }
     <header>
       <h1>🛣️ Highway WorkD</h1>
       <p style="color:var(--text-muted);font-size:0.95rem;">ระบบจัดการข้อมูลโครงการและงานทางหลวง</p>
-      <div id="connectionStatus" class="connection-status status-offline">⏳ กำลังตรวจสอบการเชื่อมต่อ...</div>
+      <div id="connectionStatus" class="connection-status status-offline" role="status">⏳ กำลังตรวจสอบการเชื่อมต่อ...</div>
     </header>
 
     <!-- === ปุ่มเมนูหลัก === -->
     <div class="card">
       <div class="btn-group">
-        <button class="btn btn-primary" onclick="showAddForm()">➕ เพิ่มโครงการ</button>
-        <button class="btn" onclick="exportData()">📤 ส่งออกไฟล์</button>
-        <button class="btn" onclick="importData()">📥 นำเข้าไฟล์</button>
-        <button class="btn btn-success" onclick="syncFromSupabase()" id="btnDownload">⬇️ ดึงข้อมูลจาก Cloud</button>
-        <button class="btn btn-warning" onclick="syncToSupabase()" id="btnUpload">⬆️ ส่งข้อมูลขึ้น Cloud</button>
-
+        <button type="button" class="btn btn-primary" id="btnAdd">➕ เพิ่มโครงการ</button>
+        <button type="button" class="btn" id="btnExport">📤 ส่งออกไฟล์</button>
+        <button type="button" class="btn" id="btnImport">📥 นำเข้าไฟล์</button>
+        <button type="button" class="btn btn-success" id="btnDownload">⬇️ ดึงข้อมูลจาก Cloud</button>
+        <button type="button" class="btn btn-warning" id="btnUpload">⬆️ ส่งข้อมูลขึ้น Cloud</button>
+      </div>
+      <div class="toolbar">
+        <label class="sr-only" for="searchBox">ค้นหาโครงการ</label>
+        <input type="search" id="searchBox" placeholder="� ค้นหาชื่อโครงการ / สายทาง / ผู้รับจ้าง">
+        <label class="sr-only" for="filterStatus">กรองตามสถานะ</label>
+        <select id="filterStatus">
+          <option value="">ทุกสถานะ</option>
+          <option value="draft">📝 ร่าง</option>
+          <option value="progress">🔄 กำลังดำเนินงาน</option>
+          <option value="done">✅ แล้วเสร็จ</option>
+        </select>
       </div>
     </div>
 
     <!-- === ฟอร์มเพิ่ม/แก้ไข === -->
     <div class="card" id="formCard" style="display:none;">
       <h3 id="formTitle">เพิ่มโครงการใหม่</h3>
-      <form id="projectForm">
+      <form id="projectForm" novalidate>
         <input type="hidden" id="editId">
+        <input type="hidden" id="editCloudId">
         <div class="form-grid">
           <div class="form-row">
-            <label>ชื่อโครงการ *</label>
-            <input type="text" id="f_name" required placeholder="ชื่อโครงการ">
+            <label for="f_name">ชื่อโครงการ *</label>
+            <input type="text" id="f_name" required placeholder="ชื่อโครงการ" autocomplete="off">
           </div>
           <div class="form-row">
-            <label>ปีงบประมาณ</label>
-            <input type="text" id="f_year" placeholder="เช่น 2570">
+            <label for="f_year">ปีงบประมาณ</label>
+            <input type="text" id="f_year" placeholder="เช่น 2570" inputmode="numeric" autocomplete="off">
           </div>
           <div class="form-row">
-            <label>แหล่งทุน</label>
-            <input type="text" id="f_source" placeholder="เช่น งบประมาณแผ่นดิน">
+            <label for="f_source">แหล่งทุน</label>
+            <input type="text" id="f_source" placeholder="เช่น งบประมาณแผ่นดิน" autocomplete="off">
           </div>
           <div class="form-row">
-            <label>สถานะ</label>
+            <label for="f_status">สถานะ</label>
             <select id="f_status">
               <option value="draft">📝 ร่าง</option>
               <option value="progress">🔄 กำลังดำเนินงาน</option>
@@ -250,49 +304,51 @@ th { background: #eff6ff; color: var(--primary); font-weight: 600; }
             </select>
           </div>
           <div class="form-row">
-            <label>เลขที่สัญญา</label>
-            <input type="text" id="f_contract_no" placeholder="เลขที่สัญญา">
+            <label for="f_contract_no">เลขที่สัญญา</label>
+            <input type="text" id="f_contract_no" placeholder="เลขที่สัญญา" autocomplete="off">
           </div>
           <div class="form-row">
-            <label>ผู้รับจ้าง</label>
-            <input type="text" id="f_contractor" placeholder="ชื่อผู้รับจ้าง">
+            <label for="f_contractor">ผู้รับจ้าง</label>
+            <input type="text" id="f_contractor" placeholder="ชื่อผู้รับจ้าง" autocomplete="off">
           </div>
           <div class="form-row">
-            <label>หมายเลขสายทาง</label>
-            <input type="text" id="f_route_no" placeholder="เช่น ทล.4, ทล.401">
+            <label for="f_route_no">หมายเลขสายทาง</label>
+            <input type="text" id="f_route_no" placeholder="เช่น ทล.4, ทล.401" autocomplete="off">
           </div>
           <div class="form-row">
-            <label>ชื่อช่วงทาง</label>
-            <input type="text" id="f_section_name" placeholder="ชื่อช่วง/ส่วนงาน">
+            <label for="f_section_name">ชื่อช่วงทาง</label>
+            <input type="text" id="f_section_name" placeholder="ชื่อช่วง/ส่วนงาน" autocomplete="off">
           </div>
           <div class="form-row">
-            <label>ช่วงกิโลเมตร</label>
-            <input type="text" id="f_km_range" placeholder="เช่น กม.0+000 - กม.5+200">
+            <label for="f_km_range">ช่วงกิโลเมตร</label>
+            <input type="text" id="f_km_range" placeholder="เช่น กม.0+000 - กม.5+200" autocomplete="off">
           </div>
           <div class="form-row">
-            <label>ความก้าวหน้า (%)</label>
-            <input type="number" id="f_progress" min="0" max="100" value="0">
+            <label for="f_progress">ความก้าวหน้า (%)</label>
+            <input type="number" id="f_progress" min="0" max="100" step="1" value="0">
           </div>
           <div class="form-row">
-            <label>งบประมาณทั้งหมด</label>
-            <input type="number" step="0.01" id="f_budget" placeholder="0.00">
+            <label for="f_budget">งบประมาณทั้งหมด</label>
+            <input type="number" step="0.01" min="0" id="f_budget" placeholder="0.00">
           </div>
           <div class="form-row">
-            <label>จ่ายเงินแล้ว</label>
-            <input type="number" step="0.01" id="f_disbursed" placeholder="0.00">
+            <label for="f_disbursed">จ่ายเงินแล้ว</label>
+            <input type="number" step="0.01" min="0" id="f_disbursed" placeholder="0.00">
           </div>
         </div>
         <div class="form-row">
-          <label>รายละเอียด / หมายเหตุ</label>
+          <label for="f_detail">รายละเอียด / หมายเหตุ</label>
           <textarea id="f_detail" placeholder="บันทึกรายละเอียด..."></textarea>
         </div>
         <div class="form-row">
-          <label>รายชื่อบุคลากร (JSON)</label>
-          <textarea id="f_persons" placeholder='[{"name":"สมชาย","role":"ผู้ควบคุมงาน"}]'></textarea>
+          <label for="f_persons">รายชื่อบุคลากร (JSON)</label>
+          <textarea id="f_persons" placeholder='[{"name":"สมชาย","role":"ผู้ควบคุมงาน"}]' aria-describedby="personsHint"></textarea>
+          <div class="field-hint" id="personsHint">เว้นว่างได้ ถ้ากรอกต้องเป็น JSON ที่ถูกต้อง เช่น <code>[{"name":"สมชาย","role":"ผู้ควบคุมงาน"}]</code></div>
+          <div class="field-error" id="personsError" hidden></div>
         </div>
         <div class="btn-group">
           <button type="submit" class="btn btn-success">💾 บันทึก</button>
-          <button type="button" class="btn" onclick="hideForm()">❌ ยกเลิก</button>
+          <button type="button" class="btn" id="btnCancelForm">❌ ยกเลิก</button>
         </div>
       </form>
     </div>
@@ -306,483 +362,746 @@ th { background: #eff6ff; color: var(--primary); font-weight: 600; }
 </div>
 
 <!-- ===== Toast แจ้งเตือน ===== -->
-<div id="toast" class="toast"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
+"use strict";
 // ==========================================================
 // ⚙️ ตั้งค่า Supabase
 // ⚠️ ใช้ชื่อตัวแปร supabaseClient เพื่อไม่ให้ชนกับ global ชื่อ supabase จาก SDK
+// ⚠️ anon key เปิดเผยได้ตามปกติ แต่ "ต้อง" เปิด RLS + Policy ที่ตาราง
+//    construction_projects ไม่เช่นนั้นใครก็แก้/ลบข้อมูลทั้งตารางได้
 // ==========================================================
 const SUPABASE_URL = "https://xsitjazwsaprzcwnksyu.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzaXRqYXp3c2Fwcnpjd25rc3l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NTc1NjMsImV4cCI6MjEwMjUzMzU2M30.XenCi59dbIR1aS0udfCOdu6nxJt6eWzTvoRDsLkZ2A8";
-const STORAGE_KEY = 'highway_workd_data';
-const TABLE_NAME = 'construction_projects';
+const STORAGE_KEY = "highway_workd_data";
+const PENDING_DELETE_KEY = "highway_workd_pending_deletes";
+const TABLE_NAME = "construction_projects";
+
+// ============ ผังฟิลด์: id ในฟอร์ม  ↔  คอลัมน์ใน Supabase ============
+// แก้ไขบั๊กหลัก: โค้ดเดิมเรียก projectName / routeName / projectStatus / projectNote
+// ซึ่งไม่มีอยู่ใน HTML ทำให้ฟอร์มพังทั้งหมด
+const FIELDS = [
+  { el: "f_name",         col: "name",         type: "text" },
+  { el: "f_year",         col: "year",         type: "text" },
+  { el: "f_source",       col: "source",       type: "text" },
+  { el: "f_status",       col: "status",       type: "status" },
+  { el: "f_contract_no",  col: "contract_no",  type: "text" },
+  { el: "f_contractor",   col: "contractor",   type: "text" },
+  { el: "f_route_no",     col: "route_no",     type: "text" },
+  { el: "f_section_name", col: "section_name", type: "text" },
+  { el: "f_km_range",     col: "km_range",     type: "text" },
+  { el: "f_progress",     col: "progress",     type: "int" },
+  { el: "f_budget",       col: "budget",       type: "num" },
+  { el: "f_disbursed",    col: "disbursed",    type: "num" },
+  { el: "f_detail",       col: "detail",       type: "text" },
+  { el: "f_persons",      col: "persons",      type: "json" }
+];
+// คอลัมน์ที่ซิงค์กับ Cloud (ไม่รวม id / created_at ที่ฐานข้อมูลจัดการเอง)
+const SYNC_COLUMNS = FIELDS.map(function (f) { return f.col; });
+
+const STATUS_LABELS = {
+  draft: "📝 ร่าง",
+  progress: "🔄 กำลังดำเนินงาน",
+  done: "✅ แล้วเสร็จ"
+};
+// รองรับค่าที่อาจถูกบันทึกไว้ต่างรูปแบบบน Cloud
+const STATUS_ALIASES = {
+  "draft": "draft", "ร่าง": "draft", "แบบร่าง": "draft", "new": "draft",
+  "progress": "progress", "in_progress": "progress", "inprogress": "progress",
+  "ongoing": "progress", "active": "progress",
+  "กำลังดำเนินงาน": "progress", "กำลังดำเนินการ": "progress", "ดำเนินการ": "progress",
+  "done": "done", "complete": "done", "completed": "done", "finished": "done",
+  "แล้วเสร็จ": "done", "เสร็จสิ้น": "done", "เสร็จ": "done"
+};
 
 // ============ ตัวแปรกลาง ============
 let supabaseClient = null; // ✅ เปลี่ยนชื่อไม่ให้ชนกับ global
 let projects = [];
+let pendingDeletes = [];   // ⚠️ cloud_id ที่ลบในเครื่องแล้ว รอลบบน Cloud
 let isOnline = false;
+let visibleIndexes = [];   // map แถวที่แสดง -> index จริงใน projects
 
-// ============ เริ่มต้นแอป ============
-document.addEventListener('DOMContentLoaded', async () => {
+// ==========================================================
+// เริ่มต้นแอป
+// ==========================================================
+document.addEventListener("DOMContentLoaded", function () {
+  bindUI();
   updateSplashStatus("กำลังโหลดข้อมูล...");
-  setTimeout(async () => {
-    try {
-      updateSplashStatus("กำลังเชื่อมต่อ Supabase...");
-      await initSupabase();
-    } catch (e) {
-      console.warn("⚠️ เชื่อมต่อ Supabase ไม่สำเร็จ:", e.message);
-    }
+  loadData();
+  renderList();
 
-    updateSplashStatus("กำลังเตรียมใช้งาน...");
-    loadData();
-    renderList();
-
-    // จัดการฟอร์ม
-    document.getElementById('projectForm').addEventListener('submit', saveProject);
-
-    // ปิดหน้าจอเริ่มต้น
-    setTimeout(() => {
-      document.getElementById('splashScreen').style.opacity = '0';
-      setTimeout(() => {
-        document.getElementById('splashScreen').style.display = 'none';
-        document.getElementById('mainContent').style.display = 'block';
-      }, 400);
-    }, 500);
-  }, 800);
+  updateSplashStatus("กำลังเชื่อมต่อ Supabase...");
+  initSupabase()
+    .catch(function (e) { console.warn("⚠️ เชื่อมต่อ Supabase ไม่สำเร็จ:", e && e.message); })
+    .finally(function () {
+      updateSplashStatus("กำลังเตรียมใช้งาน...");
+      hideSplash();
+    });
 });
 
-// ============ เชื่อมต่อ Supabase ============
+function hideSplash() {
+  const splash = document.getElementById("splashScreen");
+  const main = document.getElementById("mainContent");
+  splash.style.opacity = "0";
+  window.setTimeout(function () {
+    splash.style.display = "none";
+    main.style.display = "block";
+  }, 400);
+}
+
+// ==========================================================
+// ผูก event ทั้งหมด (ไม่ใช้ inline onclick)
+// ==========================================================
+function bindUI() {
+  document.getElementById("btnAdd").addEventListener("click", showAddForm);
+  document.getElementById("btnExport").addEventListener("click", exportData);
+  document.getElementById("btnImport").addEventListener("click", importData);
+  document.getElementById("btnDownload").addEventListener("click", syncFromSupabase);
+  document.getElementById("btnUpload").addEventListener("click", syncToSupabase);
+  document.getElementById("btnCancelForm").addEventListener("click", hideForm);
+  document.getElementById("projectForm").addEventListener("submit", saveProject);
+  document.getElementById("searchBox").addEventListener("input", renderList);
+  document.getElementById("filterStatus").addEventListener("change", renderList);
+
+  // ปุ่มแก้ไข/ลบ ใช้ event delegation
+  document.getElementById("projectList").addEventListener("click", function (ev) {
+    const btn = ev.target.closest("button[data-action]");
+    if (!btn) return;
+    const idx = parseInt(btn.getAttribute("data-index"), 10);
+    if (Number.isNaN(idx)) return;
+    if (btn.getAttribute("data-action") === "edit") editProject(idx);
+    else if (btn.getAttribute("data-action") === "delete") deleteProject(idx);
+  });
+}
+
+// ==========================================================
+// เชื่อมต่อ Supabase
+// ==========================================================
 async function initSupabase() {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    console.log("ℹ️ ยังไม่ได้ตั้งค่า Supabase");
-    setConnectionStatus(false);
+    setConnectionStatus(false, "ยังไม่ได้ตั้งค่า");
+    return;
+  }
+  if (typeof window.supabase === "undefined" || !window.supabase.createClient) {
+    setConnectionStatus(false, "ไม่พบ Supabase SDK");
     return;
   }
 
-  // ✅ ใช้ window.supabase (global จาก SDK) เพื่อสร้าง client
-  if (typeof window.supabase !== "undefined" && window.supabase.createClient) {
-    try {
-      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      console.log("✅ สร้าง Supabase client สำเร็จ");
+  try {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      // ทดสอบการเชื่อมต่อจริง
-      const { data, error } = await supabaseClient.from(TABLE_NAME).select('count').limit(1);
-      if (error) {
-        console.warn("⚠️ ไม่สามารถเข้าถึงตารางได้:", error.message);
-        setConnectionStatus(false, "ตารางไม่พร้อมใช้งาน");
-      } else {
-        console.log("✅ เชื่อมต่อ Supabase และเข้าถึงตารางสำเร็จ");
-        setConnectionStatus(true);
-        isOnline = true;
-      }
-    } catch (e) {
-      console.error("❌ เกิดข้อผิดพลาด:", e.message);
-      setConnectionStatus(false, "เกิดข้อผิดพลาด");
+    // แก้บั๊ก: เดิมใช้ select('count') ซึ่งไม่มีคอลัมน์นี้ → error เสมอ
+    const res = await supabaseClient
+      .from(TABLE_NAME)
+      .select("id", { count: "exact", head: true });
+
+    if (res.error) {
+      console.warn("⚠️ ไม่สามารถเข้าถึงตารางได้:", res.error.message);
+      setConnectionStatus(false, "เข้าถึงตารางไม่ได้ (ตรวจ RLS / ชื่อตาราง)");
+      return;
     }
-  } else {
-    setConnectionStatus(false, "ไม่พบ Supabase SDK");
+    setConnectionStatus(true, "", res.count);
+  } catch (e) {
+    console.error("❌ เกิดข้อผิดพลาด:", e);
+    setConnectionStatus(false, "เกิดข้อผิดพลาดในการเชื่อมต่อ");
   }
 }
 
-// ============ แสดงสถานะการเชื่อมต่อ ============
-function setConnectionStatus(online, message = '') {
-  const el = document.getElementById('connectionStatus');
-  if (online) {
-    el.className = 'connection-status status-online';
-    el.textContent = '🟢 เชื่อมต่อ Cloud สำเร็จ';
+// ==========================================================
+// แสดงสถานะการเชื่อมต่อ
+// ==========================================================
+function setConnectionStatus(online, message, count) {
+  isOnline = !!online;
+  const el = document.getElementById("connectionStatus");
+  if (isOnline) {
+    el.className = "connection-status status-online";
+    el.textContent = "🟢 เชื่อมต่อ Cloud สำเร็จ" +
+      (typeof count === "number" ? " (" + count.toLocaleString("th-TH") + " รายการบน Cloud)" : "");
   } else {
-    el.className = 'connection-status status-offline';
-    el.textContent = '🔴 ออฟไลน์ ' + (message ? '(' + message + ')' : '(ใช้ข้อมูลในเครื่อง)');
+    el.className = "connection-status status-offline";
+    el.textContent = "🔴 ออฟไลน์ " + (message ? "(" + message + ")" : "(ใช้ข้อมูลในเครื่อง)");
   }
-  isOnline = online;
 }
 
 function updateSplashStatus(text) {
-  const el = document.getElementById('splashStatus');
+  const el = document.getElementById("splashStatus");
   if (el) el.textContent = text;
 }
 
-// ============ โหลด/บันทึก ข้อมูลในเครื่อง ============
+// ==========================================================
+// โหลด / บันทึกข้อมูลในเครื่อง
+// ==========================================================
 function loadData() {
-  const saved = localStorage.getItem(STORAGE_KEY);
-  if (saved) {
-    try {
-      projects = JSON.parse(saved);
-      console.log(`📂 โหลดข้อมูล ${projects.length} รายการจากเครื่อง`);
-    } catch (e) {
-      console.error("❌ โหลดข้อมูลไม่สำเร็จ:", e.message);
-      projects = [];
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      projects = Array.isArray(parsed) ? parsed.map(migrateRecord) : [];
+      console.log("📂 โหลดข้อมูล " + projects.length + " รายการจากเครื่อง");
     }
+  } catch (e) {
+    console.error("❌ โหลดข้อมูลไม่สำเร็จ:", e && e.message);
+    projects = [];
+  }
+  try {
+    const pd = localStorage.getItem(PENDING_DELETE_KEY);
+    const parsed = pd ? JSON.parse(pd) : [];
+    pendingDeletes = Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    pendingDeletes = [];
   }
 }
 
-function saveToLocal() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+// ==========================================================
+// รองรับข้อมูลเก่าที่ใช้ createdAt / updatedAt (camelCase)
+// ==========================================================
+function migrateRecord(r) {
+  const o = Object.assign({}, r);
+  if (o.createdAt && !o.created_at) o.created_at = o.createdAt;
+  if (o.updatedAt && !o.updated_at) o.updated_at = o.updatedAt;
+  delete o.createdAt;
+  delete o.updatedAt;
+  o.status = normalizeStatus(o.status);
+  return o;
 }
 
-// ============ แสดงรายการ ============
+function saveToLocal() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
+    localStorage.setItem(PENDING_DELETE_KEY, JSON.stringify(pendingDeletes));
+  } catch (e) {
+    console.error("❌ บันทึกลงเครื่องไม่สำเร็จ:", e && e.message);
+    showToast("⚠️ บันทึกลงเครื่องไม่สำเร็จ (พื้นที่เก็บข้อมูลอาจเต็ม)", "error");
+  }
+}
+
+// ==========================================================
+// เครื่องมือช่วย
+// ==========================================================
+function normalizeStatus(v) {
+  if (v === null || v === undefined) return "draft";
+  const key = String(v).trim().toLowerCase();
+  return STATUS_ALIASES[key] || STATUS_ALIASES[String(v).trim()] || "draft";
+}
+
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatMoney(v) {
+  if (v === null || v === undefined || v === "") return "-";
+  const n = Number(v);
+  if (!Number.isFinite(n)) return "-";
+  return n.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function clampProgress(v) {
+  const n = parseInt(v, 10);
+  if (Number.isNaN(n)) return 0;
+  return Math.min(100, Math.max(0, n));
+}
+
+function toNumberOrNull(v) {
+  if (v === null || v === undefined || String(v).trim() === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+// ==========================================================
+// แสดงรายการ
+// ==========================================================
 function renderList() {
-  const container = document.getElementById('projectList');
-  const countEl = document.getElementById('projectCount');
-  countEl.textContent = `(ทั้งหมด ${projects.length} รายการ)`;
+  const container = document.getElementById("projectList");
+  const countEl = document.getElementById("projectCount");
+  const term = document.getElementById("searchBox").value.trim().toLowerCase();
+  const statusFilter = document.getElementById("filterStatus").value;
+
+  visibleIndexes = [];
+  projects.forEach(function (p, i) {
+    if (statusFilter && normalizeStatus(p.status) !== statusFilter) return;
+    if (term) {
+      const hay = [p.name, p.route_no, p.contractor, p.contract_no, p.section_name, p.km_range, p.year]
+        .map(function (x) { return x ? String(x).toLowerCase() : ""; }).join(" ");
+      if (hay.indexOf(term) === -1) return;
+    }
+    visibleIndexes.push(i);
+  });
+
+  countEl.textContent = (term || statusFilter)
+    ? "(แสดง " + visibleIndexes.length + " จากทั้งหมด " + projects.length + " รายการ)"
+    : "(ทั้งหมด " + projects.length + " รายการ)";
 
   if (projects.length === 0) {
     container.innerHTML = '<div class="empty">ยังไม่มีรายการโครงการ<br><small>กดปุ่ม "เพิ่มโครงการ" หรือ "ดึงข้อมูลจาก Cloud" เพื่อเริ่มต้น</small></div>';
     return;
   }
+  if (visibleIndexes.length === 0) {
+    container.innerHTML = '<div class="empty">ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา</div>';
+    return;
+  }
 
-  let html = '<table><thead><tr><th>ชื่อโครงการ</th><th>สายทาง</th><th>สถานะ</th><th>จัดการ</th></tr></thead><tbody>';
+  let html = '<div class="table-wrap"><table><thead><tr>' +
+    "<th>ชื่อโครงการ</th><th>สายทาง</th><th>ช่วง กม.</th><th>ปีงบ</th>" +
+    "<th>สถานะ</th><th>ความก้าวหน้า</th>" +
+    '<th class="num">งบประมาณ</th><th class="num">เบิกจ่าย</th>' +
+    "<th>ผู้รับจ้าง</th><th>จัดการ</th></tr></thead><tbody>";
 
-  projects.forEach((p, i) => {
-    const statusText = { draft: '📝 ร่าง', progress: '🔄 กำลังดำเนินงาน', done: '✅ แล้วเสร็จ' }[p.status || 'draft'];
-    const cloudIcon = p.cloud_id ? '☁️' : '💻';
-    html += `
-      <tr>
-        <td>${escapeHtml(p.name || '')} <small style="color:var(--text-muted)">${cloudIcon}</small></td>
-        <td>${escapeHtml(p.route_no || '')}</td>
-        <td><span class="status-badge status-${p.status || 'draft'}">${statusText}</span></td>
-        <td>
-          <button class="btn" style="padding:0.25rem 0.5rem;font-size:0.85rem;" onclick="editProject(${i})" title="แก้ไข">✏️</button>
-          <button class="btn" style="padding:0.25rem 0.5rem;font-size:0.85rem;background:#fee2e2;color:#b91c1c;" onclick="deleteProject(${i})" title="ลบ">🗑️</button>
-        </td>
-      </tr>
-    `;
+  visibleIndexes.forEach(function (i) {
+    const p = projects[i];
+    const st = normalizeStatus(p.status);
+    const prog = clampProgress(p.progress);
+    const cloudIcon = p.cloud_id ? "☁️" : "💻";
+    const cloudTitle = p.cloud_id ? "ซิงค์กับ Cloud แล้ว" : "ยังอยู่ในเครื่องเท่านั้น";
+
+    html += "<tr>" +
+      '<td class="wrap">' + escapeHtml(p.name || "(ไม่มีชื่อ)") +
+        ' <small style="color:var(--text-muted)" title="' + escapeHtml(cloudTitle) + '">' + cloudIcon + "</small></td>" +
+      "<td>" + escapeHtml(p.route_no || "-") + "</td>" +
+      "<td>" + escapeHtml(p.km_range || "-") + "</td>" +
+      "<td>" + escapeHtml(p.year || "-") + "</td>" +
+      '<td><span class="status-badge status-' + st + '">' + escapeHtml(STATUS_LABELS[st]) + "</span></td>" +
+      '<td><span class="progress-track"><span class="progress-fill" style="width:' + prog + '%"></span></span>' + prog + "%</td>" +
+      '<td class="num">' + escapeHtml(formatMoney(p.budget)) + "</td>" +
+      '<td class="num">' + escapeHtml(formatMoney(p.disbursed)) + "</td>" +
+      '<td class="wrap">' + escapeHtml(p.contractor || "-") + "</td>" +
+      "<td>" +
+        '<button type="button" class="btn btn-icon" data-action="edit" data-index="' + i + '" title="แก้ไข" aria-label="แก้ไขโครงการ">✏️</button> ' +
+        '<button type="button" class="btn btn-icon" style="background:#fee2e2;color:#b91c1c;" data-action="delete" data-index="' + i + '" title="ลบ" aria-label="ลบโครงการ">�️</button>' +
+      "</td></tr>";
   });
 
-  html += '</tbody></table>';
+  html += "</tbody></table></div>";
+  if (pendingDeletes.length > 0) {
+    html += '<div class="field-hint">🕓 มี ' + pendingDeletes.length +
+      " รายการรอลบบน Cloud — กด “ส่งข้อมูลขึ้น Cloud” เพื่อดำเนินการให้เสร็จ</div>";
+  }
   container.innerHTML = html;
 }
 
-// ฟังก์ชันเปิดฟอร์มเพิ่มโครงการ
-function showAddForm() {
-  document.getElementById('formTitle').textContent = '➕ เพิ่มโครงการใหม่';
-  document.getElementById('f_id').value = '';
-  document.getElementById('f_contract_no').value = '';
-  document.getElementById('f_year').value = '2568';
-  document.getElementById('f_name').value = '';
-  document.getElementById('f_source').value = '';
-  document.getElementById('f_status').value = 'รอดำเนินการ';
-  document.getElementById('f_route_no').value = '';
-  document.getElementById('f_section_name').value = '';
-  document.getElementById('f_km_range').value = '';
-  document.getElementById('f_contractor').value = '';
-  document.getElementById('f_budget').value = '';
-  document.getElementById('f_disbursed').value = '';
-  document.getElementById('f_progress').value = '0';
-  document.getElementById('f_detail').value = '';
-  document.getElementById('f_persons').value = '';
-  
-  const formCard = document.getElementById('formCard');
-  formCard.style.display = 'block';
-  formCard.scrollIntoView({ behavior: 'smooth' });
-  document.getElementById('f_name').focus();
+// ==========================================================
+// ฟอร์มเพิ่ม / แก้ไข
+// ==========================================================
+function clearForm() {
+  document.getElementById("editId").value = "";
+  document.getElementById("editCloudId").value = "";
+  FIELDS.forEach(function (f) {
+    const el = document.getElementById(f.el);
+    if (!el) return;
+    if (f.type === "status") el.value = "draft";
+    else if (f.el === "f_progress") el.value = "0";
+    else el.value = "";
+  });
+  hidePersonsError();
 }
 
-// ฟังก์ชันบันทึกโครงการแบบป้องกันข้อผิดพลาด 100%
-async function saveProject(e) {
-  e.preventDefault();
-  
-  try {
-    const idVal = document.getElementById('f_id').value;
-    const now = new Date().toISOString();
-
-    // จัดการ JSON บุคลากรอย่างปลอดภัย
-    let personsData = [];
-    const rawPersons = (document.getElementById('f_persons').value || '').trim();
-    if (rawPersons) {
-      try {
-        personsData = JSON.parse(rawPersons);
-      } catch (err) {
-        showToast('⚠️ รูปแบบ JSON คณะกรรมการไม่ถูกต้อง (หากไม่แน่ใจให้เว้นว่างไว้ก่อน)', 'error');
-        return;
-      }
-    }
-
-    // แปลงค่าตัวเลขป้องกัน NaN
-    const rawBudget = parseFloat(document.getElementById('f_budget').value);
-    const rawDisbursed = parseFloat(document.getElementById('f_disbursed').value);
-    const rawProgress = parseInt(document.getElementById('f_progress').value);
-
-    const projectObj = {
-      contract_no: (document.getElementById('f_contract_no').value || '').trim(),
-      year: (document.getElementById('f_year').value || '').trim() || '2568',
-      name: (document.getElementById('f_name').value || '').trim(),
-      source: (document.getElementById('f_source').value || '').trim(),
-      status: document.getElementById('f_status').value || 'รอดำเนินการ',
-      route_no: (document.getElementById('f_route_no').value || '').trim(),
-      section_name: (document.getElementById('f_section_name').value || '').trim(),
-      km_range: (document.getElementById('f_km_range').value || '').trim(),
-      contractor: (document.getElementById('f_contractor').value || '').trim(),
-      budget: isNaN(rawBudget) ? 0 : rawBudget,
-      disbursed: isNaN(rawDisbursed) ? 0 : rawDisbursed,
-      progress: isNaN(rawProgress) ? 0 : Math.min(100, Math.max(0, rawProgress)),
-      detail: (document.getElementById('f_detail').value || '').trim(),
-      persons: personsData,
-      updated_at: now
-    };
-
-    if (idVal === '') {
-      // โหมดเพิ่มใหม่
-      projectObj.created_at = now;
-      
-      if (isOnline && supabaseClient) {
-        const { data, error } = await supabaseClient.from(TABLE_NAME).insert([projectObj]).select();
-        if (error) {
-          console.warn("⚠️ บันทึกขึ้น Supabase ล้มเหลว:", error.message);
-          projectObj.id = Date.now();
-        } else if (data && data[0]) {
-          projectObj.id = data[0].id;
-        }
-      } else {
-        projectObj.id = Date.now();
-      }
-
-      projects.unshift(projectObj);
-      showToast('✅ เพิ่มโครงการเรียบร้อย', 'success');
-    } else {
-      // โหมดแก้ไข
-      const idx = parseInt(idVal);
-      const existing = projects[idx];
-      const targetId = existing.id;
-      
-      projects[idx] = { ...existing, ...projectObj };
-
-      if (isOnline && supabaseClient && targetId) {
-        const { error } = await supabaseClient.from(TABLE_NAME).update(projectObj).eq('id', targetId);
-        if (error) console.warn("⚠️ อัปเดตขึ้น Supabase ล้มเหลว:", error.message);
-      }
-      showToast('✅ อัปเดตโครงการเรียบร้อย', 'success');
-    }
-
-    saveToLocal();
-    renderList();
-    hideForm();
-
-  } catch (err) {
-    console.error("❌ บันทึกโครงการล้มเหลว:", err);
-    showToast(`❌ เกิดข้อผิดพลาด: ${err.message}`, 'error');
-  }
+function showAddForm() {
+  clearForm();
+  document.getElementById("formTitle").textContent = "➕ เพิ่มโครงการใหม่";
+  document.getElementById("formCard").style.display = "block";
+  document.getElementById("formCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  document.getElementById("f_name").focus();
 }
 
 function hideForm() {
-  document.getElementById('formCard').style.display = 'none';
+  document.getElementById("formCard").style.display = "none";
+  hidePersonsError();
 }
 
 function editProject(idx) {
   const p = projects[idx];
-  document.getElementById('formTitle').textContent = '✏️ แก้ไขโครงการ';
-  document.getElementById('editId').value = idx;
-  document.getElementById('editCloudId').value = p.cloud_id || '';
-  document.getElementById('projectName').value = p.name || '';
-  document.getElementById('routeName').value = p.route_no || '';
-  document.getElementById('projectStatus').value = p.status || 'draft';
-  document.getElementById('projectNote').value = p.detail || '';
-  document.getElementById('formCard').style.display = 'block';
+  if (!p) return;
+  clearForm();
+  document.getElementById("formTitle").textContent = "✏️ แก้ไขโครงการ";
+  document.getElementById("editId").value = String(idx);
+  document.getElementById("editCloudId").value = p.cloud_id !== undefined && p.cloud_id !== null ? String(p.cloud_id) : "";
+
+  FIELDS.forEach(function (f) {
+    const el = document.getElementById(f.el);
+    if (!el) return;
+    const v = p[f.col];
+    if (f.type === "status") el.value = normalizeStatus(v);
+    else if (f.type === "json") el.value = (v === null || v === undefined || v === "") ? "" : JSON.stringify(v, null, 2);
+    else if (f.type === "int") el.value = String(clampProgress(v));
+    else if (f.type === "num") el.value = (v === null || v === undefined) ? "" : String(v);
+    else el.value = v === null || v === undefined ? "" : String(v);
+  });
+
+  document.getElementById("formCard").style.display = "block";
+  document.getElementById("formCard").scrollIntoView({ behavior: "smooth", block: "start" });
+  document.getElementById("f_name").focus();
+}
+
+function showPersonsError(msg) {
+  const el = document.getElementById("personsError");
+  el.textContent = "⚠️ " + msg;
+  el.hidden = false;
+}
+function hidePersonsError() {
+  const el = document.getElementById("personsError");
+  el.textContent = "";
+  el.hidden = true;
+}
+
+// ==========================================================
+// อ่านค่าจากฟอร์ม → คืน object ตามคอลัมน์จริงของตาราง (หรือ null ถ้าข้อมูลไม่ผ่าน)
+// ==========================================================
+function readForm() {
+  hidePersonsError();
+  const out = {};
+
+  for (let i = 0; i < FIELDS.length; i++) {
+    const f = FIELDS[i];
+    const el = document.getElementById(f.el);
+    if (!el) continue;
+    const raw = el.value;
+
+    if (f.type === "status") {
+      out[f.col] = normalizeStatus(raw);
+    } else if (f.type === "int") {
+      out[f.col] = clampProgress(raw);
+    } else if (f.type === "num") {
+      out[f.col] = toNumberOrNull(raw);
+    } else if (f.type === "json") {
+      const t = String(raw).trim();
+      if (t === "") {
+        out[f.col] = null;
+      } else {
+        try {
+          const parsed = JSON.parse(t);
+          if (typeof parsed !== "object" || parsed === null) throw new Error("ต้องเป็น array หรือ object");
+          out[f.col] = parsed;
+        } catch (e) {
+          showPersonsError("รายชื่อบุคลากรไม่ใช่ JSON ที่ถูกต้อง: " + e.message);
+          el.focus();
+          return null;
+        }
+      }
+    } else {
+      const t = String(raw).trim();
+      out[f.col] = t === "" ? null : t;
+    }
+  }
+
+  if (!out.name) {
+    showToast("⚠️ กรุณากรอกชื่อโครงการ", "error");
+    document.getElementById("f_name").focus();
+    return null;
+  }
+  if (out.budget !== null && out.disbursed !== null && out.disbursed > out.budget) {
+    showToast("⚠️ ยอดเบิกจ่ายมากกว่างบประมาณ กรุณาตรวจสอบ", "error");
+    return null;
+  }
+  return out;
+}
+
+function saveProject(e) {
+  e.preventDefault();
+  const data = readForm();
+  if (!data) return;
+
+  const editId = document.getElementById("editId").value;
+  const editCloudId = document.getElementById("editCloudId").value;
+  const now = new Date().toISOString();
+
+  data.updated_at = now;
+  if (editCloudId !== "") {
+    const asNum = Number(editCloudId);
+    data.cloud_id = Number.isFinite(asNum) && String(asNum) === editCloudId ? asNum : editCloudId;
+  }
+
+  if (editId === "") {
+    data.created_at = now;
+    projects.unshift(data);
+    showToast("✅ เพิ่มโครงการสำเร็จ (อย่าลืมส่งขึ้น Cloud)", "success");
+  } else {
+    const idx = parseInt(editId, 10);
+    projects[idx] = Object.assign({}, projects[idx], data);
+    showToast("✅ อัปเดตโครงการสำเร็จ (อย่าลืมส่งขึ้น Cloud)", "success");
+  }
+
+  saveToLocal();
+  renderList();
+  hideForm();
 }
 
 function deleteProject(idx) {
   const p = projects[idx];
-  if (confirm(`ยืนยันการลบรายการ "${p.name}"?`)) {
-    projects.splice(idx, 1);
+  if (!p) return;
+  if (!confirm('ยืนยันการลบรายการ "' + (p.name || "(ไม่มีชื่อ)") + '"?')) return;
+
+  // แก้บั๊ก: เดิมลบแค่ในเครื่อง พอดึงจาก Cloud ใหม่รายการจะกลับมา
+  if (p.cloud_id !== undefined && p.cloud_id !== null && p.cloud_id !== "") {
+    const alsoCloud = confirm("รายการนี้มีอยู่บน Cloud ด้วย\n\nกด OK = ลบออกจาก Cloud ด้วย\nกด Cancel = ลบเฉพาะในเครื่อง (ดึงข้อมูลครั้งถัดไปจะกลับมา)");
+    if (alsoCloud) {
+      pendingDeletes.push(p.cloud_id);
+      deleteFromCloud(p.cloud_id);
+    }
+  }
+
+  projects.splice(idx, 1);
+  saveToLocal();
+  renderList();
+  showToast("🗑️ ลบรายการสำเร็จ", "info");
+}
+
+async function deleteFromCloud(cloudId) {
+  if (!supabaseClient || !isOnline) {
+    showToast("ℹ️ ออฟไลน์อยู่ — บันทึกคำสั่งลบไว้ จะลบบน Cloud เมื่อกดส่งข้อมูลครั้งถัดไป", "info");
+    return;
+  }
+  try {
+    const res = await supabaseClient.from(TABLE_NAME).delete().eq("id", cloudId);
+    if (res.error) throw res.error;
+    pendingDeletes = pendingDeletes.filter(function (x) { return String(x) !== String(cloudId); });
     saveToLocal();
     renderList();
-    showToast('🗑️ ลบรายการสำเร็จ', 'info');
+    showToast("🗑️ ลบข้อมูลบน Cloud สำเร็จ", "success");
+  } catch (err) {
+    console.warn("⚠️ ลบบน Cloud ไม่สำเร็จ:", err && err.message);
+    showToast("⚠️ ลบบน Cloud ไม่สำเร็จ: " + (err && err.message ? err.message : "ไม่ทราบสาเหตุ") + " (บันทึกไว้ลองใหม่ภายหลัง)", "error");
   }
 }
 
-// ============ นำเข้า-ส่งออก ไฟล์ ============
+// ==========================================================
+// นำเข้า / ส่งออกไฟล์
+// ==========================================================
 function exportData() {
-  const blob = new Blob([JSON.stringify(projects, null, 2)], { type: 'application/json' });
+  if (projects.length === 0) {
+    showToast("ℹ️ ยังไม่มีข้อมูลให้ส่งออก", "info");
+    return;
+  }
+  const blob = new Blob([JSON.stringify(projects, null, 2)], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
-  a.download = `highway-workd-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.download = "highway-workd-backup-" + new Date().toISOString().slice(0, 10) + ".json";
+  document.body.appendChild(a);   // แก้ปัญหาบน Firefox: ต้องอยู่ใน DOM ก่อนคลิก
   a.click();
-  URL.revokeObjectURL(url);
-  showToast('📤 ส่งออกไฟล์สำเร็จ', 'success');
+  document.body.removeChild(a);
+  window.setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  showToast("📤 ส่งออกไฟล์สำเร็จ (" + projects.length + " รายการ)", "success");
 }
 
 function importData() {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.json';
-  input.onchange = (e) => {
-    const file = e.target.files[0];
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".json,application/json";
+  input.addEventListener("change", function (e) {
+    const file = e.target.files && e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (ev) => {
+    reader.onerror = function () { showToast("❌ อ่านไฟล์ไม่สำเร็จ", "error"); };
+    reader.onload = function (ev) {
       try {
         const imported = JSON.parse(ev.target.result);
-        if (!Array.isArray(imported)) throw new Error('ไม่ใช่รายการข้อมูล');
+        if (!Array.isArray(imported)) throw new Error("ไม่ใช่รายการข้อมูล");
 
-        const existingKeys = new Set(projects.map(p => `${p.name}||${p.route_no}`));
-        let added = 0;
-        imported.forEach(p => {
-          const key = `${p.name}||${p.route_no}`;
-          if (!existingKeys.has(key)) {
-            projects.push(p);
-            existingKeys.add(key);
-            added++;
-          }
+        const keyOf = function (p) {
+          return [p.name || "", p.route_no || "", p.contract_no || "", p.km_range || ""].join("||");
+        };
+        const existingKeys = new Set(projects.map(keyOf));
+        const existingCloudIds = new Set(
+          projects.filter(function (p) { return p.cloud_id; }).map(function (p) { return String(p.cloud_id); })
+        );
+
+        let added = 0, skipped = 0;
+        imported.forEach(function (raw) {
+          const p = migrateRecord(raw);
+          const dupCloud = p.cloud_id && existingCloudIds.has(String(p.cloud_id));
+          if (dupCloud || existingKeys.has(keyOf(p))) { skipped++; return; }
+          projects.push(p);
+          existingKeys.add(keyOf(p));
+          if (p.cloud_id) existingCloudIds.add(String(p.cloud_id));
+          added++;
         });
 
         saveToLocal();
         renderList();
-        showToast(`✅ นำเข้าสำเร็จ เพิ่ม ${added} รายการ`, 'success');
+        showToast("✅ นำเข้าสำเร็จ เพิ่ม " + added + " รายการ (ข้ามรายการซ้ำ " + skipped + ")", "success");
       } catch (err) {
-        showToast('❌ ไฟล์ข้อมูลไม่ถูกต้อง', 'error');
+        console.error(err);
+        showToast("❌ ไฟล์ข้อมูลไม่ถูกต้อง: " + (err && err.message ? err.message : ""), "error");
       }
     };
-    reader.readAsText(file);
-  };
+    reader.readAsText(file, "utf-8");
+  });
   input.click();
 }
 
-// ============ ซิงค์ Supabase: ดึงข้อมูลลงมา ============
+// ==========================================================
+// ซิงค์: ดึงข้อมูลจาก Cloud (ครบทุกคอลัมน์)
+// ==========================================================
 async function syncFromSupabase() {
   if (!supabaseClient) {
-    showToast('⚠️ ยังไม่ได้ตั้งค่าการเชื่อมต่อ', 'error');
+    showToast("⚠️ ยังไม่ได้เชื่อมต่อ Supabase", "error");
     return;
   }
 
-  const btn = document.getElementById('btnDownload');
+  const btn = document.getElementById("btnDownload");
+  const label = btn.textContent;
   btn.disabled = true;
-  btn.textContent = '⏳ กำลังดึงข้อมูล...';
+  btn.textContent = "⏳ กำลังดึงข้อมูล...";
 
   try {
-    const { data, error } = await supabaseClient
+    const res = await supabaseClient
       .from(TABLE_NAME)
-      .select('*')
-      .order('created_at', { ascending: false });
+      .select("*")
+      .order("created_at", { ascending: false, nullsFirst: false });
 
-    if (error) throw error;
+    if (res.error) throw res.error;
+    const data = res.data || [];
 
-    if (data && data.length > 0) {
-      const cloudProjects = data.map(row => ({
-        cloud_id: row.id,
-        name: row.name || '',
-        route_no: row.route_no || '',
-        status: row.status || 'draft',
-        detail: row.detail || '',
-        createdAt: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
-        updatedAt: row.updated_at ? new Date(row.updated_at).toISOString() : new Date().toISOString()
-      }));
-
-      const existingCloudIds = new Set(projects.filter(p => p.cloud_id).map(p => p.cloud_id));
-      let added = 0, updated = 0;
-
-      cloudProjects.forEach(cp => {
-        if (existingCloudIds.has(cp.cloud_id)) {
-          const idx = projects.findIndex(p => p.cloud_id === cp.cloud_id);
-          if (idx !== -1) {
-            projects[idx] = cp;
-            updated++;
-          }
-        } else {
-          projects.push(cp);
-          added++;
-        }
-      });
-
-      saveToLocal();
-      renderList();
-      showToast(`✅ ดึงข้อมูลสำเร็จ: ใหม่ ${added} รายการ, อัปเดต ${updated} รายการ`, 'success');
-    } else {
-      showToast('ℹ️ ยังไม่มีข้อมูลใน Cloud', 'info');
+    if (data.length === 0) {
+      showToast("ℹ️ ยังไม่มีข้อมูลใน Cloud", "info");
+      return;
     }
+
+    // แก้บั๊ก: เดิม map แค่ 4 คอลัมน์ ทำให้ข้อมูลอีก 10 คอลัมน์หายไป
+    const cloudProjects = data.map(function (row) {
+      const o = { cloud_id: row.id };
+      SYNC_COLUMNS.forEach(function (col) {
+        o[col] = row[col] !== undefined ? row[col] : null;
+      });
+      o.status = normalizeStatus(row.status);
+      o.progress = clampProgress(row.progress);
+      o.created_at = row.created_at || new Date().toISOString();
+      o.updated_at = row.updated_at || o.created_at;
+      return o;
+    });
+
+    let added = 0, updated = 0;
+    cloudProjects.forEach(function (cp) {
+      const idx = projects.findIndex(function (p) {
+        return p.cloud_id !== undefined && p.cloud_id !== null && String(p.cloud_id) === String(cp.cloud_id);
+      });
+      if (idx !== -1) {
+        projects[idx] = cp;
+        updated++;
+      } else {
+        projects.push(cp);
+        added++;
+      }
+    });
+
+    saveToLocal();
+    renderList();
+    showToast("✅ ดึงข้อมูลสำเร็จ: ใหม่ " + added + " รายการ, อัปเดต " + updated + " รายการ", "success");
   } catch (e) {
     console.error("❌ ดึงข้อมูลไม่สำเร็จ:", e);
-    showToast(`❌ ดึงข้อมูลไม่สำเร็จ: ${e.message}`, 'error');
+    showToast("❌ ดึงข้อมูลไม่สำเร็จ: " + (e && e.message ? e.message : "ไม่ทราบสาเหตุ"), "error");
   } finally {
     btn.disabled = false;
-    btn.textContent = '⬇️ ดึงข้อมูลจาก Cloud';
+    btn.textContent = label;
   }
 }
 
-// ============ ซิงค์ Supabase: ส่งข้อมูลขึ้นไป ============
+// ==========================================================
+// ซิงค์: ส่งข้อมูลขึ้น Cloud (ครบทุกคอลัมน์ + เคลียร์รายการรอลบ)
+// ==========================================================
 async function syncToSupabase() {
   if (!supabaseClient) {
-    showToast('⚠️ ยังไม่ได้ตั้งค่าการเชื่อมต่อ', 'error');
+    showToast("⚠️ ยังไม่ได้เชื่อมต่อ Supabase", "error");
+    return;
+  }
+  if (projects.length === 0 && pendingDeletes.length === 0) {
+    showToast("ℹ️ ไม่มีข้อมูลให้ส่ง", "info");
     return;
   }
 
-  if (projects.length === 0) {
-    showToast('ℹ️ ไม่มีข้อมูลให้ส่ง', 'info');
-    return;
-  }
-
-  const btn = document.getElementById('btnUpload');
+  const btn = document.getElementById("btnUpload");
+  const label = btn.textContent;
   btn.disabled = true;
-  btn.textContent = '⏳ กำลังส่งข้อมูล...';
+  btn.textContent = "⏳ กำลังส่งข้อมูล...";
 
-  let success = 0, failed = 0;
+  let inserted = 0, updatedCount = 0, deleted = 0, failed = 0;
+  const errors = [];
 
   try {
+    // 1) เคลียร์รายการที่ค้างรอลบบน Cloud
+    const stillPending = [];
+    for (const cid of pendingDeletes) {
+      const res = await supabaseClient.from(TABLE_NAME).delete().eq("id", cid);
+      if (res.error) { stillPending.push(cid); failed++; errors.push("ลบ id " + cid + ": " + res.error.message); }
+      else deleted++;
+    }
+    pendingDeletes = stillPending;
+
+    // 2) ส่งข้อมูลขึ้น — ครบทุกคอลัมน์
     for (const p of projects) {
-      const rowData = {
-        name: p.name,
-        route_no: p.route_no || '',
-        status: p.status || 'draft',
-        detail: p.detail || ''
-      };
+      const rowData = {};
+      SYNC_COLUMNS.forEach(function (col) {
+        let v = p[col];
+        if (col === "status") v = normalizeStatus(v);
+        if (col === "progress") v = clampProgress(v);
+        if (v === undefined) v = null;
+        rowData[col] = v;
+      });
+      rowData.updated_at = new Date().toISOString();
 
-      if (p.cloud_id) {
-        const { error } = await supabaseClient
-          .from(TABLE_NAME)
-          .update(rowData)
-          .eq('id', p.cloud_id);
+      if (!rowData.name) { failed++; errors.push("ข้ามรายการที่ไม่มีชื่อโครงการ"); continue; }
 
-        if (error) {
-          console.warn(`⚠️ อัปเดตไม่สำเร็จ (${p.name}):`, error.message);
+      if (p.cloud_id !== undefined && p.cloud_id !== null && p.cloud_id !== "") {
+        const res = await supabaseClient.from(TABLE_NAME).update(rowData).eq("id", p.cloud_id).select();
+        if (res.error) {
           failed++;
+          errors.push(p.name + ": " + res.error.message);
+        } else if (!res.data || res.data.length === 0) {
+          // แถวหายไปจาก Cloud (ถูกลบ) → เพิ่มกลับเป็นรายการใหม่
+          const ins = await supabaseClient.from(TABLE_NAME).insert(rowData).select();
+          if (ins.error) { failed++; errors.push(p.name + ": " + ins.error.message); }
+          else { p.cloud_id = ins.data[0].id; inserted++; }
         } else {
-          success++;
+          updatedCount++;
         }
       } else {
-        const { data, error } = await supabaseClient
-          .from(TABLE_NAME)
-          .insert(rowData)
-          .select();
-
-        if (error) {
-          console.warn(`⚠️ เพิ่มไม่สำเร็จ (${p.name}):`, error.message);
+        const res = await supabaseClient.from(TABLE_NAME).insert(rowData).select();
+        if (res.error) {
           failed++;
-        } else if (data && data[0]) {
-          p.cloud_id = data[0].id;
-          success++;
+          errors.push(p.name + ": " + res.error.message);
+        } else if (res.data && res.data[0]) {
+          p.cloud_id = res.data[0].id;
+          if (res.data[0].created_at) p.created_at = res.data[0].created_at;
+          inserted++;
         }
       }
     }
 
     saveToLocal();
     renderList();
-    showToast(`✅ ส่งข้อมูลสำเร็จ: ${success} รายการ, ล้มเหลว: ${failed} รายการ`, success > 0 ? 'success' : 'error');
+
+    let msg = "✅ ส่งข้อมูลเสร็จ: เพิ่ม " + inserted + ", อัปเดต " + updatedCount;
+    if (deleted > 0) msg += ", ลบ " + deleted;
+    if (failed > 0) msg += " | ล้มเหลว " + failed + " รายการ";
+    showToast(msg, failed > 0 ? "error" : "success");
+    if (errors.length > 0) console.warn("⚠️ รายละเอียดข้อผิดพลาด:\n" + errors.join("\n"));
   } catch (e) {
     console.error("❌ ส่งข้อมูลไม่สำเร็จ:", e);
-    showToast(`❌ เกิดข้อผิดพลาด: ${e.message}`, 'error');
+    showToast("❌ เกิดข้อผิดพลาด: " + (e && e.message ? e.message : "ไม่ทราบสาเหตุ"), "error");
   } finally {
     btn.disabled = false;
-    btn.textContent = '⬆️ ส่งข้อมูลขึ้น Cloud';
+    btn.textContent = label;
   }
 }
 
-// ============ เครื่องมือ ============
-function escapeHtml(str) {
-  if (!str) return '';
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-// ============ แจ้งเตือน Toast ============
-function showToast(message, type = 'info') {
-  const toast = document.getElementById('toast');
+// ==========================================================
+// Toast แจ้งเตือน
+// ==========================================================
+let toastTimer = null;
+function showToast(message, type) {
+  const toast = document.getElementById("toast");
   toast.textContent = message;
-  toast.className = `toast ${type} show`;
-  setTimeout(() => {
-    toast.classList.remove('show');
-  }, 3000);
+  toast.className = "toast " + (type || "info") + " show";
+  if (toastTimer) window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(function () {
+    toast.classList.remove("show");
+  }, 3500);
 }
 </script>
 
