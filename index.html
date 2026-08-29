@@ -430,13 +430,44 @@ td.num, th.num { text-align: right; }
   white-space: pre-wrap;
   word-break: break-word;
 }
-ul.person-list { list-style: none; display: flex; flex-direction: column; gap: 0.3rem; }
-ul.person-list li {
-  background: #f9fafb;
-  border-radius: 0.4rem;
-  padding: 0.35rem 0.55rem;
+
+/* ===== ตารางคณณะกรรมการตรวจรับพัสดุ (แบบ ver.1.0) ===== */
+.person-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
 }
-ul.person-list li em { color: var(--text-muted); font-style: normal; font-size: 0.82rem; }
+.person-table thead th {
+  background: var(--surface);
+  color: var(--text-muted);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.35rem 0.45rem;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+}
+.person-table thead th:first-child { width: 2.5rem; text-align: center; }
+.person-table tbody td {
+  padding: 0.32rem 0.45rem;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+.person-table tbody td:first-child { text-align: center; color: var(--text-muted); }
+.person-table tbody tr:last-child td { border-bottom: none; }
+.person-role {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 9999px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+@media print {
+  .person-table thead th { background: #fff !important; }
+}
 
 body.sheet-open { overflow: hidden; }
 
@@ -683,8 +714,8 @@ body.sheet-open { overflow: hidden; }
         </div>
         <div class="form-row">
           <label for="f_persons">รายชื่อบุคลากร (JSON)</label>
-          <textarea id="f_persons" placeholder='[{"name":"สมชาย","role":"ผู้ควบคุมงาน"}]' aria-describedby="personsHint"></textarea>
-          <div class="field-hint" id="personsHint">เว้นว่างได้ ถ้ากรอกต้องเป็น JSON ที่ถูกต้อง เช่น <code>[{"name":"สมชาย","role":"ผู้ควบคุมงาน"}]</code></div>
+          <textarea id="f_persons" placeholder='[{"name":"สมชาย","position":"นายช่างโยธา","role":"ผู้ควบคุมงาน"}]' aria-describedby="personsHint"></textarea>
+          <div class="field-hint" id="personsHint">เว้นว่างได้ ถ้ากรอกต้องเป็น JSON ที่ถูกต้อง เช่น <code>[{"name":"สมชาย","position":"นายช่างโยธา","role":"ผู้ควบคุมงาน"}]</code></div>
           <div class="field-error" id="personsError" hidden></div>
         </div>
         <div class="btn-group">
@@ -1270,19 +1301,26 @@ function buildDetailBody(p) {
 
   const persons = Array.isArray(p.persons) ? p.persons : [];
   if (persons.length > 0) {
-    h += '<div class="detail-block"><span class="block-label">บุคลากรผู้เกี่ยวข้อง (' + persons.length + ' คน)</span>' +
-      '<ul class="person-list">';
-    persons.forEach(function (person) {
+    h += '<div class="detail-block">' +
+      '<span class="block-label">� คณะกรรมการตรวจรับพัสดุและผู้ควบคุมงาน</span>' +
+      '<table class="person-table">' +
+      '<thead><tr><th>ลำดับ</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>บทบาทหน้าที่</th></tr></thead><tbody>';
+    persons.forEach(function (person, idx) {
       if (person && typeof person === "object") {
-        const nm = person.name || person.fullname || "(ไม่ระบุชื่อ)";
-        const role = person.role || person.position || "";
-        h += "<li>" + escapeHtml(String(nm)) +
-          (role ? " <em>— " + escapeHtml(String(role)) + "</em>" : "") + "</li>";
+        const nm = person.name || person.fullname || "-";
+        const pos = person.position || person.pos || "";
+        const role = person.role || "";
+        h += '<tr><td>' + (idx + 1) + '</td>' +
+          '<td>' + escapeHtml(String(nm)) + '</td>' +
+          '<td>' + escapeHtml(String(pos)) + '</td>' +
+          '<td>' + (role ? '<span class="person-role">' + escapeHtml(String(role)) + '</span>' : '-') + '</td></tr>';
       } else {
-        h += "<li>" + escapeHtml(String(person)) + "</li>";
+        h += '<tr><td>' + (idx + 1) + '</td>' +
+          '<td>' + escapeHtml(String(person)) + '</td>' +
+          '<td>-</td><td>-</td></tr>';
       }
     });
-    h += "</ul></div>";
+    h += '</tbody></table></div>';
   }
   return h;
 }
