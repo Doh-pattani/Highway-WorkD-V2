@@ -186,6 +186,260 @@ td.num, th.num { text-align: right; }
 }
 .progress-fill { display: block; height: 100%; background: var(--primary-light); }
 
+/* ===== มุมมองการ์ด ===== */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+/* การ์ดทั้งใบกดได้ → เปิดแท็บรายละเอียด */
+.pcard {
+  border: 1px solid var(--border-color);
+  border-left: 5px solid var(--border-color);
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(27,73,101,0.12);
+}
+.pcard:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.12); transform: translateY(-2px); }
+.pcard:focus-visible { outline: 3px solid rgba(27,73,101,0.45); outline-offset: 2px; }
+.pcard:active { transform: translateY(0); }
+.pcard[data-status="pending"]    { border-left-color: #9ca3af; }
+.pcard[data-status="progress"]   { border-left-color: #2563eb; }
+.pcard[data-status="waitpay"]    { border-left-color: #d97706; }
+.pcard[data-status="done"]       { border-left-color: #059669; }
+.pcard[data-status="terminated"] { border-left-color: #dc2626; }
+
+/* ===== แถบบน: เลขที่สัญญา (เด่นที่สุด) ===== */
+.pcard-head {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  color: #fff;
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.pcard-head-main { min-width: 0; }
+.pcard-contract-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 0.1rem;
+}
+.pcard-contract {
+  font-family: "Kanit", "Sarabun", sans-serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  word-break: break-word;
+  font-variant-numeric: tabular-nums;
+}
+.pcard-contract.is-empty { font-size: 1rem; font-weight: 500; opacity: 0.75; }
+.pcard-cloud { font-size: 1rem; flex-shrink: 0; }
+
+/* ===== เนื้อการ์ด: ชื่อโครงการ / ปีงบ / สถานะ / ความก้าวหน้า ===== */
+.pcard-body {
+  padding: 0.85rem 0.9rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  flex: 1;
+}
+.pcard-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
+.pcard-meta { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+.pcard-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: auto;
+}
+
+.pcard-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.tag {
+  display: inline-block;
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #dbeafe;
+  border-radius: 0.375rem;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+.tag-muted { background: #f3f4f6; color: #4b5563; border-color: #e5e7eb; }
+
+.pcard-progress { margin-top: 0.1rem; }
+.pcard-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+.pcard-progress-label strong { color: var(--text-main); }
+.progress-track.wide { width: 100%; height: 9px; margin-right: 0; display: block; }
+
+/* ===== แท็บรายละเอียด (Sheet) — เลื่อนขึ้นจากด้านล่าง ===== */
+#detailSheet[hidden] { display: none; }
+#detailSheet {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+#detailSheet.open .sheet-backdrop { opacity: 1; }
+
+.sheet-panel {
+  position: relative;
+  background: var(--bg-card);
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  border-radius: 1.1rem 1.1rem 0 0;
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+#detailSheet.open .sheet-panel { transform: translateY(0); }
+
+.sheet-grip {
+  width: 44px;
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 999px;
+  margin: 0.55rem auto 0;
+  flex-shrink: 0;
+}
+
+.sheet-head {
+  padding: 0.6rem 1rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
+.sheet-head-main { flex: 1; min-width: 0; }
+.sheet-contract-label { font-size: 0.72rem; color: var(--text-muted); }
+.sheet-contract {
+  font-family: "Kanit", "Sarabun", sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.25;
+  word-break: break-word;
+  font-variant-numeric: tabular-nums;
+}
+.sheet-title { font-size: 0.92rem; color: var(--text-main); margin-top: 0.2rem; word-break: break-word; }
+.sheet-close {
+  flex-shrink: 0;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-main);
+  font-family: inherit;
+}
+.sheet-close:hover { background: #e5e7eb; }
+.sheet-close:focus-visible { outline: 3px solid rgba(27,73,101,0.35); outline-offset: 2px; }
+
+.sheet-body {
+  padding: 0.9rem 1rem 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.sheet-foot {
+  padding: 0.7rem 1rem;
+  padding-bottom: calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+.sheet-foot .btn { flex: 1; }
+.sheet-foot .btn-danger { flex: 0 0 auto; }
+
+/* ตารางข้อมูลในแท็บ */
+.sheet-body dl.detail-list {
+  display: grid;
+  grid-template-columns: minmax(104px, 36%) 1fr;
+  gap: 0.4rem 0.7rem;
+}
+.sheet-body dl.detail-list dt { color: var(--text-muted); }
+.sheet-body dl.detail-list dd { word-break: break-word; font-weight: 500; }
+
+.sheet-figures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.7rem;
+  margin-bottom: 0.85rem;
+}
+.sheet-figures dt { font-size: 0.75rem; color: var(--text-muted); }
+.sheet-figures dd { font-size: 1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sheet-figures dd small { font-weight: 400; color: var(--text-muted); font-size: 0.75rem; }
+
+.detail-block { margin-top: 0.85rem; }
+.detail-block > span.block-label {
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.82rem;
+}
+.note-box {
+  background: #f9fafb;
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+ul.person-list { list-style: none; display: flex; flex-direction: column; gap: 0.3rem; }
+ul.person-list li {
+  background: #f9fafb;
+  border-radius: 0.4rem;
+  padding: 0.35rem 0.55rem;
+}
+ul.person-list li em { color: var(--text-muted); font-style: normal; font-size: 0.82rem; }
+
+body.sheet-open { overflow: hidden; }
+
 .empty { text-align: center; color: var(--text-muted); padding: 2rem; }
 
 .status-badge {
@@ -195,9 +449,11 @@ td.num, th.num { text-align: right; }
   font-size: 0.8rem;
   font-weight: 500;
 }
-.status-draft { background: #e5e7eb; color: #374151; }
-.status-progress { background: #dbeafe; color: #1e40af; }
-.status-done { background: #d1fae5; color: #065f46; }
+.status-pending    { background: #e5e7eb; color: #374151; }
+.status-progress   { background: #dbeafe; color: #1e40af; }
+.status-waitpay    { background: #fef3c7; color: #92400e; }
+.status-done       { background: #d1fae5; color: #065f46; }
+.status-terminated { background: #fee2e2; color: #991b1b; }
 
 .toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 .toolbar input, .toolbar select { width: auto; min-width: 160px; flex: 1 1 160px; }
@@ -233,6 +489,17 @@ td.num, th.num { text-align: right; }
   th, td { padding: 0.4rem 0.3rem; font-size: 0.85rem; }
   .btn { padding: 0.4rem 0.75rem; font-size: 0.9rem; }
   #splashScreen .logo { font-size: 1.6rem; }
+  .card-grid { grid-template-columns: 1fr; }
+  .pcard-contract { font-size: 1.3rem; }
+  .sheet-body dl.detail-list { grid-template-columns: 1fr; gap: 0.05rem; }
+  .sheet-body dl.detail-list dd { margin-bottom: 0.4rem; }
+  .sheet-panel { max-height: 92vh; }
+}
+
+@media print {
+  .btn-group, .toolbar, #formCard, .toast, #detailSheet, .pcard-hint { display: none !important; }
+  .card-grid { grid-template-columns: 1fr 1fr; }
+  .pcard { break-inside: avoid; box-shadow: none; }
 }
 </style>
 </head>
@@ -269,9 +536,11 @@ td.num, th.num { text-align: right; }
         <label class="sr-only" for="filterStatus">กรองตามสถานะ</label>
         <select id="filterStatus">
           <option value="">ทุกสถานะ</option>
-          <option value="draft">📝 ร่าง</option>
-          <option value="progress">🔄 กำลังดำเนินงาน</option>
+          <option value="pending">📌 รอดำเนินการ</option>
+          <option value="progress">🔄 ระหว่างดำเนินการ</option>
+          <option value="waitpay">💰 รอเบิกจ่าย</option>
           <option value="done">✅ แล้วเสร็จ</option>
+          <option value="terminated">⛔ บอกเลิกสัญญา</option>
         </select>
       </div>
     </div>
@@ -298,9 +567,11 @@ td.num, th.num { text-align: right; }
           <div class="form-row">
             <label for="f_status">สถานะ</label>
             <select id="f_status">
-              <option value="draft">📝 ร่าง</option>
-              <option value="progress">🔄 กำลังดำเนินงาน</option>
+              <option value="pending">📌 รอดำเนินการ</option>
+              <option value="progress">🔄 ระหว่างดำเนินการ</option>
+              <option value="waitpay">💰 รอเบิกจ่าย</option>
               <option value="done">✅ แล้วเสร็จ</option>
+              <option value="terminated">⛔ บอกเลิกสัญญา</option>
             </select>
           </div>
           <div class="form-row">
@@ -361,15 +632,36 @@ td.num, th.num { text-align: right; }
   </div>
 </div>
 
+<!-- ===== แท็บรายละเอียดโครงการ (เปิดเมื่อกดการ์ด) ===== -->
+<div id="detailSheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetContract">
+  <div class="sheet-backdrop" data-sheet-close="1"></div>
+  <div class="sheet-panel">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <div class="sheet-head">
+      <div class="sheet-head-main">
+        <div class="sheet-contract-label">เลขที่สัญญา</div>
+        <div class="sheet-contract" id="sheetContract">-</div>
+        <div class="sheet-title" id="sheetTitle"></div>
+      </div>
+      <button type="button" class="sheet-close" id="btnSheetClose" aria-label="ปิดรายละเอียด">✕</button>
+    </div>
+    <div class="sheet-body" id="sheetBody"></div>
+    <div class="sheet-foot">
+      <button type="button" class="btn btn-success" id="btnSheetEdit">✏️ แก้ไขข้อมูล</button>
+      <button type="button" class="btn btn-danger" id="btnSheetDelete">🗑️ ลบ</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== Toast แจ้งเตือน ===== -->
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
 "use strict";
 // ==========================================================
-// ⚙️ ตั้งค่า Supabase
-// ⚠️ ใช้ชื่อตัวแปร supabaseClient เพื่อไม่ให้ชนกับ global ชื่อ supabase จาก SDK
-// ⚠️ anon key เปิดเผยได้ตามปกติ แต่ "ต้อง" เปิด RLS + Policy ที่ตาราง
+// ⚙ ตั้งค่า Supabase
+// ⚠ ใช้ชื่อตัวแปร supabaseClient เพื่อไม่ให้ชนกับ global ชื่อ supabase จาก SDK
+// ⚠ anon key เปิดเผยได้ตามปกติ แต่ "ต้อง" เปิด RLS + Policy ที่ตาราง
 //    construction_projects ไม่เช่นนั้นใครก็แก้/ลบข้อมูลทั้งตารางได้
 // ==========================================================
 const SUPABASE_URL = "https://xsitjazwsaprzcwnksyu.supabase.co";
@@ -401,26 +693,60 @@ const FIELDS = [
 const SYNC_COLUMNS = FIELDS.map(function (f) { return f.col; });
 
 const STATUS_LABELS = {
-  draft: "📝 ร่าง",
-  progress: "🔄 กำลังดำเนินงาน",
-  done: "✅ แล้วเสร็จ"
+  pending:    "📌 รอดำเนินการ",
+  progress:   "🔄 ระหว่างดำเนินการ",
+  waitpay:    "💰 รอเบิกจ่าย",
+  done:       "✅ แล้วเสร็จ",
+  terminated: "⛔ บอกเลิกสัญญา"
 };
+
+// คำที่เก็บจริงในฐานข้อมูล (ส่งข้อมูลขึ้น Cloud จะเขียนค่าเหล่านี้ เพื่อให้อ่านรู้จากหน้าเว็บ Supabase ได้)
+const STATUS_DB_TEXT = {
+  pending:    "รอดำเนินการ",
+  progress:   "ระหว่างดำเนินการ",
+  waitpay:    "รอเบิกจ่าย",
+  done:       "แล้วเสร็จ",
+  terminated: "บอกเลิกสัญญา"
+};
+function statusToDbText(v) { return STATUS_DB_TEXT[normalizeStatus(v)]; }
 // รองรับค่าที่อาจถูกบันทึกไว้ต่างรูปแบบบน Cloud
 const STATUS_ALIASES = {
-  "draft": "draft", "ร่าง": "draft", "แบบร่าง": "draft", "new": "draft",
+  // รอดำเนินการ (เดิมใช้คำว่า "ร่าง")
+  "pending": "pending", "draft": "pending", "new": "pending", "waiting": "pending",
+  "รอดำเนินการ": "pending", "รอเริ่ม": "pending",
+  "ยังไม่เริ่ม": "pending", "ร่าง": "pending", "แบบร่าง": "pending",
+
+  // ระหว่างดำเนินการ
   "progress": "progress", "in_progress": "progress", "inprogress": "progress",
-  "ongoing": "progress", "active": "progress",
+  "ongoing": "progress", "active": "progress", "working": "progress",
+  "ระหว่างดำเนินการ": "progress", "อยู่ระหว่างดำเนินการ": "progress",
   "กำลังดำเนินงาน": "progress", "กำลังดำเนินการ": "progress", "ดำเนินการ": "progress",
+
+  // รอเบิกจ่าย
+  "waitpay": "waitpay", "wait_payment": "waitpay", "pending_payment": "waitpay",
+  "รอเบิกจ่าย": "waitpay", "รอเบิกเงิน": "waitpay", "รอการเบิกจ่าย": "waitpay",
+  "เสร็จงานรอเบิกจ่าย": "waitpay",
+
+  // แล้วเสร็จ
   "done": "done", "complete": "done", "completed": "done", "finished": "done",
-  "แล้วเสร็จ": "done", "เสร็จสิ้น": "done", "เสร็จ": "done"
+  "แล้วเสร็จ": "done", "เสร็จสิ้น": "done", "เสร็จ": "done",
+  "สิ้นสุดสัญญา": "done", "เบิกจ่ายครบ": "done",
+
+  // บอกเลิกสัญญา
+  "terminated": "terminated", "cancelled": "terminated", "canceled": "terminated",
+  "บอกเลิกสัญญา": "terminated", "ยกเลิกสัญญา": "terminated",
+  "ยกเลิก": "terminated", "ยกเลิกการจ้าง": "terminated"
 };
 
 // ============ ตัวแปรกลาง ============
-let supabaseClient = null; // ✅ เปลี่ยนชื่อไม่ให้ชนกับ global
+let supabaseClient = null;
 let projects = [];
-let pendingDeletes = [];   // ⚠️ cloud_id ที่ลบในเครื่องแล้ว รอลบบน Cloud
+let pendingDeletes = [];   // cloud_id ที่ลบในเครื่องแล้ว รอลบบน Cloud
 let isOnline = false;
 let visibleIndexes = [];   // map แถวที่แสดง -> index จริงใน projects
+let activeDetailIndex = -1;      // index โครงการที่กำลังเปิดแท็บรายละเอียด
+let activeDetailKey = null;      // key ของโครงการนั้น (ทนต่อการเรียงลำดับใหม่)
+let sheetHistoryPushed = false;  // เพิ่ม history entry ไว้หรือยัง (ใช้กับปุ่มย้อนกลับ)
 
 // ==========================================================
 // เริ่มต้นแอป
@@ -464,14 +790,51 @@ function bindUI() {
   document.getElementById("searchBox").addEventListener("input", renderList);
   document.getElementById("filterStatus").addEventListener("change", renderList);
 
-  // ปุ่มแก้ไข/ลบ ใช้ event delegation
-  document.getElementById("projectList").addEventListener("click", function (ev) {
-    const btn = ev.target.closest("button[data-action]");
-    if (!btn) return;
-    const idx = parseInt(btn.getAttribute("data-index"), 10);
+  // แตะการ์ดทั้งใบ = เปิดแท็บรายละเอียด (event delegation)
+  const listEl = document.getElementById("projectList");
+  listEl.addEventListener("click", function (ev) {
+    const card = ev.target.closest(".pcard");
+    if (!card) return;
+    const idx = parseInt(card.getAttribute("data-index"), 10);
     if (Number.isNaN(idx)) return;
-    if (btn.getAttribute("data-action") === "edit") editProject(idx);
-    else if (btn.getAttribute("data-action") === "delete") deleteProject(idx);
+    openDetailSheet(idx);
+  });
+  // รองรับคีย์บอร์ด: Enter / Space บนการ์ด
+  listEl.addEventListener("keydown", function (ev) {
+    if (ev.key !== "Enter" && ev.key !== " " && ev.key !== "Spacebar") return;
+    const card = ev.target.closest(".pcard");
+    if (!card) return;
+    ev.preventDefault();
+    const idx = parseInt(card.getAttribute("data-index"), 10);
+    if (!Number.isNaN(idx)) openDetailSheet(idx);
+  });
+
+  // ===== ปุ่มต่าง ๆ ในแท็บรายละเอียด =====
+  document.getElementById("btnSheetClose").addEventListener("click", function () { closeDetailSheet(); });
+  document.getElementById("detailSheet").addEventListener("click", function (ev) {
+    if (ev.target.getAttribute("data-sheet-close") === "1") closeDetailSheet();
+  });
+  document.getElementById("btnSheetEdit").addEventListener("click", function () {
+    const idx = activeDetailIndex;
+    closeDetailSheet();
+    if (idx >= 0) editProject(idx);
+  });
+  document.getElementById("btnSheetDelete").addEventListener("click", function () {
+    const idx = activeDetailIndex;
+    if (idx < 0) return;
+    const removed = deleteProject(idx);
+    if (removed) closeDetailSheet();
+  });
+
+  // ปิดแท็บด้วยปุ่ม Esc
+  document.addEventListener("keydown", function (ev) {
+    if (ev.key === "Escape") closeDetailSheet();
+  });
+
+  // ปุ่มย้อนกลับของเครื่อง / เบราว์เซอร์ → ปิดแท็บรายละเอียด (ไม่ออกจากแอป)
+  window.addEventListener("popstate", function () {
+    const sheet = document.getElementById("detailSheet");
+    if (sheet && !sheet.hidden) closeDetailSheet({ fromHistory: true });
   });
 }
 
@@ -580,9 +943,9 @@ function saveToLocal() {
 // เครื่องมือช่วย
 // ==========================================================
 function normalizeStatus(v) {
-  if (v === null || v === undefined) return "draft";
+  if (v === null || v === undefined) return "pending";
   const key = String(v).trim().toLowerCase();
-  return STATUS_ALIASES[key] || STATUS_ALIASES[String(v).trim()] || "draft";
+  return STATUS_ALIASES[key] || STATUS_ALIASES[String(v).trim()] || "pending";
 }
 
 function escapeHtml(str) {
@@ -640,49 +1003,240 @@ function renderList() {
 
   if (projects.length === 0) {
     container.innerHTML = '<div class="empty">ยังไม่มีรายการโครงการ<br><small>กดปุ่ม "เพิ่มโครงการ" หรือ "ดึงข้อมูลจาก Cloud" เพื่อเริ่มต้น</small></div>';
+    refreshDetailSheet();
     return;
   }
   if (visibleIndexes.length === 0) {
     container.innerHTML = '<div class="empty">ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา</div>';
+    refreshDetailSheet();
     return;
   }
 
-  let html = '<div class="table-wrap"><table><thead><tr>' +
-    "<th>ชื่อโครงการ</th><th>สายทาง</th><th>ช่วง กม.</th><th>ปีงบ</th>" +
-    "<th>สถานะ</th><th>ความก้าวหน้า</th>" +
-    '<th class="num">งบประมาณ</th><th class="num">เบิกจ่าย</th>' +
-    "<th>ผู้รับจ้าง</th><th>จัดการ</th></tr></thead><tbody>";
-
+  let html = '<div class="card-grid">';
   visibleIndexes.forEach(function (i) {
-    const p = projects[i];
-    const st = normalizeStatus(p.status);
-    const prog = clampProgress(p.progress);
-    const cloudIcon = p.cloud_id ? "☁️" : "💻";
-    const cloudTitle = p.cloud_id ? "ซิงค์กับ Cloud แล้ว" : "ยังอยู่ในเครื่องเท่านั้น";
-
-    html += "<tr>" +
-      '<td class="wrap">' + escapeHtml(p.name || "(ไม่มีชื่อ)") +
-        ' <small style="color:var(--text-muted)" title="' + escapeHtml(cloudTitle) + '">' + cloudIcon + "</small></td>" +
-      "<td>" + escapeHtml(p.route_no || "-") + "</td>" +
-      "<td>" + escapeHtml(p.km_range || "-") + "</td>" +
-      "<td>" + escapeHtml(p.year || "-") + "</td>" +
-      '<td><span class="status-badge status-' + st + '">' + escapeHtml(STATUS_LABELS[st]) + "</span></td>" +
-      '<td><span class="progress-track"><span class="progress-fill" style="width:' + prog + '%"></span></span>' + prog + "%</td>" +
-      '<td class="num">' + escapeHtml(formatMoney(p.budget)) + "</td>" +
-      '<td class="num">' + escapeHtml(formatMoney(p.disbursed)) + "</td>" +
-      '<td class="wrap">' + escapeHtml(p.contractor || "-") + "</td>" +
-      "<td>" +
-        '<button type="button" class="btn btn-icon" data-action="edit" data-index="' + i + '" title="แก้ไข" aria-label="แก้ไขโครงการ">✏️</button> ' +
-        '<button type="button" class="btn btn-icon" style="background:#fee2e2;color:#b91c1c;" data-action="delete" data-index="' + i + '" title="ลบ" aria-label="ลบโครงการ">🗑️</button>' +
-      "</td></tr>";
+    html += buildProjectCard(projects[i], i);
   });
+  html += "</div>";
 
-  html += "</tbody></table></div>";
   if (pendingDeletes.length > 0) {
     html += '<div class="field-hint">🕓 มี ' + pendingDeletes.length +
       " รายการรอลบบน Cloud — กด “ส่งข้อมูลขึ้น Cloud” เพื่อดำเนินการให้เสร็จ</div>";
   }
   container.innerHTML = html;
+
+  // ถ้าแท็บรายละเอียดเปิดอยู่ ให้อัปเดตเนื้อหาตามข้อมูลใหม่เสมอ
+  refreshDetailSheet();
+}
+
+// ---------- การ์ดโครงการ 1 ใบ ----------
+// แถบบน  = เลขที่สัญญา (เด่นที่สุด)
+// แถบล่าง = ชื่อโครงการ / สถานะ / ปีงบประมาณ / ความก้าวหน้า
+// กดการ์ดทั้งใบ → เปิดแท็บรายละเอียด ที่มีปุ่มแก้ไข / ลบ อยู่ในตัว
+function buildProjectCard(p, i) {
+  const st = normalizeStatus(p.status);
+  const prog = clampProgress(p.progress);
+  const cloudIcon = p.cloud_id ? "☁️" : "💻";
+  const cloudTitle = p.cloud_id ? "ชิงก์กับ Cloud แล้ว" : "ยังอยู่ในเครื่องเท่านั้น";
+  const hasContract = p.contract_no !== undefined && p.contract_no !== null && String(p.contract_no).trim() !== "";
+  const contractText = hasContract ? String(p.contract_no) : "ยังไม่ระบุเลขที่สัญญา";
+
+  let h = '<article class="pcard" data-status="' + st + '" data-index="' + i + '"' +
+    ' role="button" tabindex="0" aria-label="เปิดรายละเอียดสัญญา ' + escapeHtml(contractText) + '">';
+
+  // ===== แถบบน: เลขที่สัญญาเด่นที่สุด =====
+  h += '<div class="pcard-head">' +
+    '<div class="pcard-head-main">' +
+      '<div class="pcard-contract-label">เลขที่สัญญา</div>' +
+      '<div class="pcard-contract' + (hasContract ? "" : " is-empty") + '">' + escapeHtml(contractText) + "</div>" +
+    "</div>" +
+    '<span class="pcard-cloud" title="' + escapeHtml(cloudTitle) + '" aria-label="' + escapeHtml(cloudTitle) + '">' + cloudIcon + "</span>" +
+    "</div>";
+
+  // ===== แถบล่าง: ชื่อโครงการ / สถานะ / ปีงบ / ความก้าวหน้า =====
+  h += '<div class="pcard-body">';
+  h += '<h4 class="pcard-title">' + escapeHtml(p.name || "(ไม่มีชื่อโครงการ)") + "</h4>";
+
+  h += '<div class="pcard-meta">' +
+    '<span class="status-badge status-' + st + '">' + escapeHtml(STATUS_LABELS[st]) + "</span>";
+  if (p.year) h += '<span class="tag tag-muted">📅 ปีงบ ' + escapeHtml(p.year) + "</span>";
+  h += "</div>";
+
+  h += '<div class="pcard-progress">' +
+    '<div class="pcard-progress-label"><span>ความก้าวหน้า</span><strong>' + prog + "%</strong></div>" +
+    '<span class="progress-track wide" role="img" aria-label="ความก้าวหน้า ' + prog + ' เปอร์เซนต์">' +
+    '<span class="progress-fill" style="width:' + prog + '%"></span></span></div>';
+
+  h += '<div class="pcard-hint">แตะการ์ดเพื่อดูรายละเอียด ›</div>';
+  h += "</div>";
+
+  h += "</article>";
+  return h;
+}
+
+// ---------- เนื้อหารายละเอียดครบทุกฟิลด์ (ใช้ในแท็บ) ----------
+function buildDetailBody(p) {
+  const budget = toNumberOrNull(p.budget);
+  const disbursed = toNumberOrNull(p.disbursed);
+  const pctPaid = (budget && budget > 0 && disbursed !== null)
+    ? Math.round((disbursed / budget) * 1000) / 10
+    : null;
+  const st = normalizeStatus(p.status);
+  const prog = clampProgress(p.progress);
+
+  // กล่องตัวเลขเงิน
+  let h = '<dl class="sheet-figures">' +
+    "<div><dt>งบประมาณ</dt><dd>" + escapeHtml(formatMoney(p.budget)) + "</dd></div>" +
+    "<div><dt>เบิกจ่ายแล้ว</dt><dd>" + escapeHtml(formatMoney(p.disbursed)) +
+      (pctPaid !== null ? " <small>(" + pctPaid + "%)</small>" : "") +
+    "</dd></div></dl>";
+
+  // แถบความก้าวหน้า + สถานะ
+  h += '<div class="pcard-meta" style="margin-bottom:0.7rem">' +
+    '<span class="status-badge status-' + st + '">' + escapeHtml(STATUS_LABELS[st]) + "</span>" +
+    '<span class="tag tag-muted">ความก้าวหน้า ' + prog + "%</span>" +
+    "</div>";
+
+  const rows = [
+    ["ชื่อโครงการ", p.name],
+    ["ปีงบประมาณ", p.year],
+    ["แหล่งทุน", p.source],
+    ["ผู้รับจ้าง", p.contractor],
+    ["หมายเลขสายทาง", p.route_no],
+    ["ชื่อช่วงทาง", p.section_name],
+    ["ช่วงกิโลเมตร", p.km_range],
+    ["สถานะการซิงค์", p.cloud_id ? "☁️ อยู่บน Cloud แล้ว" : "💻 เก็บในเครื่องเท่านั้น"],
+    ["บันทึกล่าสุด", formatDateTime(p.updated_at || p.created_at)]
+  ];
+
+  h += '<dl class="detail-list">';
+  rows.forEach(function (r) {
+    h += "<dt>" + escapeHtml(r[0]) + "</dt><dd>" +
+      escapeHtml(r[1] !== null && r[1] !== undefined && String(r[1]) !== "" ? String(r[1]) : "-") + "</dd>";
+  });
+  h += "</dl>";
+
+  if (p.detail && String(p.detail).trim() !== "") {
+    h += '<div class="detail-block"><span class="block-label">รายละเอียด / หมายเหตุ</span>' +
+      '<div class="note-box">' + escapeHtml(p.detail) + "</div></div>";
+  }
+
+  const persons = Array.isArray(p.persons) ? p.persons : [];
+  if (persons.length > 0) {
+    h += '<div class="detail-block"><span class="block-label">บุคลากรผู้เกี่ยวข้อง (' + persons.length + ' คน)</span>' +
+      '<ul class="person-list">';
+    persons.forEach(function (person) {
+      if (person && typeof person === "object") {
+        const nm = person.name || person.fullname || "(ไม่ระบุชื่อ)";
+        const role = person.role || person.position || "";
+        h += "<li>" + escapeHtml(String(nm)) +
+          (role ? " <em>— " + escapeHtml(String(role)) + "</em>" : "") + "</li>";
+      } else {
+        h += "<li>" + escapeHtml(String(person)) + "</li>";
+      }
+    });
+    h += "</ul></div>";
+  }
+  return h;
+}
+
+// คีย์ประจำการ์ด ใช้อ้างอิงโครงการที่เปิดแท็บค้างไว้
+function cardKey(p, i) {
+  if (p.cloud_id !== undefined && p.cloud_id !== null && p.cloud_id !== "") return "c" + p.cloud_id;
+  if (p.local_id) return "l" + p.local_id;
+  return "i" + i;
+}
+
+// ==========================================================
+// 🗂️ แท็บรายละเอียดโครงการ
+//  - กดการ์ดทั้งใบ → เปิดแท็บ
+//  - ปุ่มย้อนกลับของเครื่อง / ปุ่ม ✕ / กดพื้นหลัง / Esc → ปิดแท็บ
+// ==========================================================
+function openDetailSheet(idx, opts) {
+  const p = projects[idx];
+  if (!p) return;
+  const sheet = document.getElementById("detailSheet");
+  if (!sheet) return;
+
+  activeDetailIndex = idx;
+  activeDetailKey = cardKey(p, idx);
+
+  const hasContract = p.contract_no !== undefined && p.contract_no !== null && String(p.contract_no).trim() !== "";
+  document.getElementById("sheetContract").textContent = hasContract ? String(p.contract_no) : "ยังไม่ระบุเลขที่สัญญา";
+  document.getElementById("sheetTitle").textContent = p.name || "(ไม่มีชื่อโครงการ)";
+  document.getElementById("sheetBody").innerHTML = buildDetailBody(p);
+  document.getElementById("sheetBody").scrollTop = 0;
+
+  sheet.hidden = false;
+  document.body.classList.add("sheet-open");
+  // บังคับ reflow ก่อนใส่คลาส open เพื่อให้อนิเมชันเลื่อนขึ้นทำงาน
+  void sheet.offsetWidth;
+  sheet.classList.add("open");
+  window.setTimeout(function () {
+    const closeBtn = document.getElementById("btnSheetClose");
+    if (closeBtn) closeBtn.focus();
+  }, 60);
+
+  // เพิ่ม history entry เพื่อให้กดปุ่มย้อนกลับของมือถือ/เบราว์เพอร์แล้วแท็บหาย
+  if (!(opts && opts.fromHistory)) {
+    try {
+      history.pushState({ hwSheet: true, key: activeDetailKey }, "", location.href);
+      sheetHistoryPushed = true;
+    } catch (e) {
+      sheetHistoryPushed = false;
+    }
+  }
+}
+
+// ปิดแท็บ; ถ้าเรียกจาก popstate จะส่ง fromHistory = true เพื่อไม่ต้อง history.back() ส้อน
+function closeDetailSheet(opts) {
+  const sheet = document.getElementById("detailSheet");
+  if (!sheet || sheet.hidden) return;
+
+  sheet.classList.remove("open");
+  document.body.classList.remove("sheet-open");
+  window.setTimeout(function () {
+    if (!sheet.classList.contains("open")) sheet.hidden = true;
+  }, 300);
+
+  activeDetailIndex = -1;
+  activeDetailKey = null;
+
+  if (!(opts && opts.fromHistory) && sheetHistoryPushed) {
+    sheetHistoryPushed = false;
+    try { history.back(); } catch (e) { /* ไม่มีผล */ }
+  } else {
+    sheetHistoryPushed = false;
+  }
+}
+
+// อัปเดตเนื้อหาแท็บหลังมีการเปลี่ยนข้อมูล (เช่น ดึงจาก Cloud หรืออัปเดตสำเร็จ)
+function refreshDetailSheet() {
+  const sheet = document.getElementById("detailSheet");
+  if (!sheet || sheet.hidden || activeDetailKey === null) return;
+
+  // หาตำแหน่งโครงการเดิมอีกครั้ง เพราะ index อาจเลื่อน
+  let found = -1;
+  for (let k = 0; k < projects.length; k++) {
+    if (cardKey(projects[k], k) === activeDetailKey) { found = k; break; }
+  }
+  if (found === -1) { closeDetailSheet(); return; }
+
+  const p = projects[found];
+  activeDetailIndex = found;
+  const hasContract = p.contract_no !== undefined && p.contract_no !== null && String(p.contract_no).trim() !== "";
+  document.getElementById("sheetContract").textContent = hasContract ? String(p.contract_no) : "ยังไม่ระบุเลขที่สัญญา";
+  document.getElementById("sheetTitle").textContent = p.name || "(ไม่มีชื่อโครงการ)";
+  document.getElementById("sheetBody").innerHTML = buildDetailBody(p);
+}
+
+function formatDateTime(v) {
+  if (!v) return "";
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("th-TH", {
+    year: "numeric", month: "short", day: "numeric",
+    hour: "2-digit", minute: "2-digit"
+  });
 }
 
 // ==========================================================
@@ -694,7 +1248,7 @@ function clearForm() {
   FIELDS.forEach(function (f) {
     const el = document.getElementById(f.el);
     if (!el) return;
-    if (f.type === "status") el.value = "draft";
+    if (f.type === "status") el.value = "pending";
     else if (f.el === "f_progress") el.value = "0";
     else el.value = "";
   });
@@ -833,8 +1387,8 @@ function saveProject(e) {
 
 function deleteProject(idx) {
   const p = projects[idx];
-  if (!p) return;
-  if (!confirm('ยืนยันการลบรายการ "' + (p.name || "(ไม่มีชื่อ)") + '"?')) return;
+  if (!p) return false;
+  if (!confirm('ยืนยันการลบรายการ "' + (p.contract_no || p.name || "(ไม่มีชื่อ)") + '"?')) return false;
 
   // แก้บั๊ก: เดิมลบแค่ในเครื่อง พอดึงจาก Cloud ใหม่รายการจะกลับมา
   if (p.cloud_id !== undefined && p.cloud_id !== null && p.cloud_id !== "") {
@@ -849,6 +1403,7 @@ function deleteProject(idx) {
   saveToLocal();
   renderList();
   showToast("🗑️ ลบรายการสำเร็จ", "info");
+  return true;
 }
 
 async function deleteFromCloud(cloudId) {
@@ -1038,7 +1593,7 @@ async function syncToSupabase() {
       const rowData = {};
       SYNC_COLUMNS.forEach(function (col) {
         let v = p[col];
-        if (col === "status") v = normalizeStatus(v);
+        if (col === "status") v = statusToDbText(v);   // เขียนเป็นคำไทยลงฐานข้อมูล ให้อ่านรู้จากหน้าเว็บ Supabase ได้
         if (col === "progress") v = clampProgress(v);
         if (v === undefined) v = null;
         rowData[col] = v;
