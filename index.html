@@ -431,7 +431,7 @@ td.num, th.num { text-align: right; }
   word-break: break-word;
 }
 
-/* ===== ตารางคณณะกรรมการตรวจรับพัสดุ (แบบ ver.1.0) ===== */
+/* ===== ตารางคณะกรรมการตรวจรับพัสดุ (แบบ ver.1.0) ===== */
 .person-table {
   width: 100%;
   border-collapse: collapse;
@@ -580,6 +580,28 @@ body.sheet-open { overflow: hidden; }
   margin-top: 0.7rem;
 }
 .pin-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.9rem; }
+.pin-hint-warn { color: #b91c1c; font-weight: 600; }
+.pin-role-select {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+.pin-role-select label { cursor: pointer; }
+.pin-role-select input[type="radio"] { margin-right: 0.3rem; accent-color: var(--primary); }
+
+/* ป้ายบอก role บนหัวหน้าหลัก */
+.role-badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  vertical-align: middle;
+  margin-left: 0.4rem;
+}
+.role-admin  { background: #dbeafe; color: #1e40af; }
+.role-viewer { background: #fef3c7; color: #92400e; }
 
 @media print {
   #pinGate { display: none !important; }
@@ -601,14 +623,19 @@ body.sheet-open { overflow: hidden; }
 <!-- ===== หน้าล็อกอินด้วยรหัสผ่านทีม ===== */ -->
 <div id="pinGate" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
   <div class="pin-box">
-    <div class="pin-logo" aria-hidden="true">�️</div>
+    <div class="pin-logo" aria-hidden="true">🛣️</div>
     <h2 id="pinTitle">Highway WorkD</h2>
-    <p>กรอกรหัสผ่านของทีมเพื่อเข้าใช้งาน</p>
+    <p>กรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
+    <div class="pin-role-select">
+      <label><input type="radio" name="pinRole" value="admin" id="pinRoleAdmin"> 🛡️ ผู้ดูแล</label>
+      <label><input type="radio" name="pinRole" value="viewer" id="pinRoleViewer" checked> 👁️ ผู้ใช้ทั่วไป</label>
+    </div>
     <label class="sr-only" for="pinInput">รหัสผ่าน</label>
     <input type="password" id="pinInput" placeholder="รหัสผ่าน" autocomplete="current-password" inputmode="numeric">
     <button type="button" class="btn btn-primary" id="btnPinSubmit">เข้าสู่ระบบ</button>
     <div id="pinError" class="pin-error" role="alert" hidden>รหัสผ่านไม่ถูกต้อง ลองอีกครั้ง</div>
-    <div class="pin-hint">รหัสนี้เป็นเพียงการกันเปิดหน้าจอเบื้องต้น ไม่ใช่การรักษาความปลอดภัยของข้อมูล</div>
+    <div class="pin-hint">🛡️ <strong>ผู้ดูแล</strong> = เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud &nbsp;|&nbsp; 👁️ <strong>ผู้ใช้ทั่วไป</strong> = ดูได้อย่างเดียว</div>
+    <div class="pin-hint pin-hint-warn">⚠️ รหัสเริ่มต้น: ผู้ดูแล=1234, ผู้ใช้ทั่วไป=0000 — <strong>เปลี่ยนก่อนใช้จริง!</strong></div>
   </div>
 </div>
 
@@ -616,7 +643,7 @@ body.sheet-open { overflow: hidden; }
 <div id="mainContent">
   <div class="container">
     <header>
-      <h1>🛣️ Highway WorkD</h1>
+      <h1>🛣️ Highway WorkD <span id="roleBadge" class="role-badge role-viewer">👁️ ผู้ใช้ทั่วไป</span></h1>
       <p style="color:var(--text-muted);font-size:0.95rem;">ระบบจัดการข้อมูลโครงการและงานทางหลวง</p>
       <div id="connectionStatus" class="connection-status status-offline" role="status">⏳ กำลังตรวจสอบการเชื่อมต่อ...</div>
     </header>
@@ -772,13 +799,19 @@ const PENDING_DELETE_KEY = "highway_workd_pending_deletes";
 const TABLE_NAME = "construction_projects";
 
 // ==========================================================
-// � รหัสผ่านทีม (กันการเปิดหน้าจอเบื้องต้นเท่านั้น)
-// ⚠️ เปลี่ยนค่านี้เป็นรหัสของทีมคุณก่อนนำไปใช้จริง ห้ามใช้ 0000
-// ⚠️ รหัสนี้อยู่ฝั่งหน้าเว็บ คนที่เปิดดูโค้ดหน้าเว็บหาเจอได้
+// 🔐 ระบบสิทธิ์ 2 ระดับ
+//   • ADMIN_PIN  = ผู้ดูแล: เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud ได้ทุกอย่าง
+//   • VIEWER_PIN = ผู้ใช้ทั่วไป: ดูได้อย่างเดียว ห้ามเพิ่ม/แก้ไข/ลบ
+// ⚠️ เปลี่ยน PIN ทั้ง 2 ค่าเป็นรหัสของทีมคุณก่อนนำไปใช้จริง!
+//   - ADMIN_PIN: ห้ามใช้ 1234 ในชีวิตจริง
+//   - VIEWER_PIN: ห้ามใช้ 0000 ในชีวิตจริง
+// ⚠️ รหัสเหล่านี้อยู่ฝั่งหน้าเว็บ คนที่เปิดดูโค้ดหน้าเว็บหาเจอได้
 //    การป้องกันข้อมูลจริงๆ ต้องตั้ง RLS + Policy ที่ฝั่งฐานข้อมูลเท่านั้น
 // ==========================================================
-const TEAM_PIN = "0000";
+const ADMIN_PIN  = "1234";   // 🔑 PIN สำหรับผู้ดูแล (เปลี่ยนก่อนใช้จริง!)
+const VIEWER_PIN = "0000";   // 👁️ PIN สำหรับผู้ใช้ทั่วไป (เปลี่ยนก่อนใช้จริง!)
 const PIN_SESSION_KEY = "highway_workd_unlocked_until";
+const PIN_ROLE_KEY = "highway_workd_role";       // เก็บ role: "admin" หรือ "viewer"
 const PIN_SESSION_HOURS = 12;   // เข้ารหัสครั้งหนึ่ง จำไว้กี่ชั่วโมง
 
 // ==========================================================
@@ -897,14 +930,27 @@ function isUnlocked() {
   try {
     const until = parseInt(localStorage.getItem(PIN_SESSION_KEY) || "0", 10);
     if (!until || Number.isNaN(until)) return false;
-    if (Date.now() > until) { localStorage.removeItem(PIN_SESSION_KEY); return false; }
+    if (Date.now() > until) { localStorage.removeItem(PIN_SESSION_KEY); localStorage.removeItem(PIN_ROLE_KEY); return false; }
     return true;
   } catch (e) { return false; }
 }
 
-function markUnlocked() {
+/** คืน role ปัจจุบัน: "admin" หรือ "viewer" (ค่าเริ่มต้น viewer) */
+function currentRole() {
+  try {
+    return localStorage.getItem(PIN_ROLE_KEY) || "viewer";
+  } catch (e) { return "viewer"; }
+}
+
+/** ตรวจว่าเป็นผู้ดูแลหรือไม่ */
+function isAdmin() {
+  return currentRole() === "admin";
+}
+
+function markUnlocked(role) {
   try {
     localStorage.setItem(PIN_SESSION_KEY, String(Date.now() + PIN_SESSION_HOURS * 3600 * 1000));
+    localStorage.setItem(PIN_ROLE_KEY, role);
   } catch (e) { /* โหมดส่วนตัวอาจเก็บค่าไม่ได้ */ }
 }
 
@@ -914,24 +960,60 @@ function showPinGate() {
   gate.classList.add("show");
   const input = document.getElementById("pinInput");
   input.value = "";
+  // ตั้งค่า role selector ให้ตรงกับ session เดิม (ถ้ามี) หรือ default viewer
+  var prev = currentRole();
+  document.getElementById("pinRoleAdmin").checked = (prev === "admin");
+  document.getElementById("pinRoleViewer").checked = (prev !== "admin");
+  input.placeholder = prev === "admin" ? "PIN ผู้ดูแล" : "PIN ผู้ใช้ทั่วไป";
   window.setTimeout(function () { input.focus(); }, 50);
 }
 
 function showApp() {
   document.getElementById("pinGate").classList.remove("show");
   document.getElementById("mainContent").style.display = "block";
+  applyRoleUI();
   renderList();
+}
+
+/** ซ่อน/แสดงปุ่มตามสิทธิ์ (viewer = ซ่อนปุ่ม admin-only) */
+function applyRoleUI() {
+  var isA = isAdmin();
+  // ปุ่มในหน้าหลัก
+  var adminBtns = ["btnAdd", "btnExport", "btnImport", "btnDownload", "btnUpload"];
+  adminBtns.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = isA ? "" : "none";
+  });
+  // ปุ่มใน detail sheet (แก้ไข / ลบ)
+  var sheetBtns = ["btnSheetEdit", "btnSheetDelete"];
+  sheetBtns.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = isA ? "" : "none";
+  });
+  // แสดงบั้นร์บอก role
+  var badge = document.getElementById("roleBadge");
+  if (badge) {
+    badge.textContent = isA ? "🛡️ ผู้ดูแล" : "👁️ ผู้ใช้ทั่วไป";
+    badge.className = "role-badge " + (isA ? "role-admin" : "role-viewer");
+  }
 }
 
 function checkPin() {
   const input = document.getElementById("pinInput");
   const err = document.getElementById("pinError");
-  if (input.value === TEAM_PIN) {
+  const val = input.value;
+  if (val === ADMIN_PIN) {
     err.hidden = true;
     input.value = "";
-    markUnlocked();
+    markUnlocked("admin");
     showApp();
-    showToast("✅ เข้าสู่ระบบสำเร็จ", "success");
+    showToast("✅ เข้าสู่ระบบสำเร็จ (ผู้ดูแล)", "success");
+  } else if (val === VIEWER_PIN) {
+    err.hidden = true;
+    input.value = "";
+    markUnlocked("viewer");
+    showApp();
+    showToast("✅ เข้าสู่ระบบสำเร็จ (ผู้ใช้ทั่วไป — ดูได้อย่างเดียว)", "info");
   } else {
     err.hidden = false;
     input.value = "";
@@ -940,7 +1022,7 @@ function checkPin() {
 }
 
 function lockApp() {
-  try { localStorage.removeItem(PIN_SESSION_KEY); } catch (e) { /* ข้าม */ }
+  try { localStorage.removeItem(PIN_SESSION_KEY); localStorage.removeItem(PIN_ROLE_KEY); } catch (e) { /* ข้าม */ }
   closeDetailSheet({ fromHistory: true });
   hideForm();
   document.getElementById("pinError").hidden = true;
@@ -955,6 +1037,17 @@ function bindUI() {
   document.getElementById("btnDownload").addEventListener("click", syncFromSupabase);
   document.getElementById("btnUpload").addEventListener("click", syncToSupabase);
   document.getElementById("btnLock").addEventListener("click", lockApp);
+
+  // เลือก role ที่หน้าล็อกอิน
+  document.querySelectorAll('input[name="pinRole"]').forEach(function (rb) {
+    rb.addEventListener("change", function () {
+      var input = document.getElementById("pinInput");
+      input.value = "";
+      document.getElementById("pinError").hidden = true;
+      input.placeholder = rb.value === "admin" ? "PIN ผู้ดูแล" : "PIN ผู้ใช้ทั่วไป";
+      input.focus();
+    });
+  });
 
   // หน้าล็อกอิน
   document.getElementById("btnPinSubmit").addEventListener("click", checkPin);
@@ -1072,7 +1165,7 @@ function updateSplashStatus(text) {
 }
 
 // ==========================================================
-// โหลด / บันทึกข้อมูลในเครื่อง
+// ฟังก์ชั่นโหลด / บันทึกข้อมูลในเครื่อง
 // ==========================================================
 function loadData() {
   try {
@@ -1157,7 +1250,7 @@ function toNumberOrNull(v) {
 }
 
 // ==========================================================
-// แสดงรายการ
+// ฟังก์ชั่นแสดงรายการ
 // ==========================================================
 function renderList() {
   const container = document.getElementById("projectList");
@@ -1207,10 +1300,12 @@ function renderList() {
   refreshDetailSheet();
 }
 
+// ==========================================================
 // ---------- การ์ดโครงการ 1 ใบ ----------
 // แถบบน  = เลขที่สัญญา (เด่นที่สุด)
 // แถบล่าง = ชื่อโครงการ / สถานะ / ปีงบประมาณ / ความก้าวหน้า
 // กดการ์ดทั้งใบ → เปิดแท็บรายละเอียด ที่มีปุ่มแก้ไข / ลบ อยู่ในตัว
+// ==========================================================
 function buildProjectCard(p, i) {
   const st = normalizeStatus(p.status);
   const prog = clampProgress(p.progress);
@@ -1252,7 +1347,9 @@ function buildProjectCard(p, i) {
   return h;
 }
 
+// ==========================================================
 // ---------- เนื้อหารายละเอียดครบทุกฟิลด์ (ใช้ในแท็บ) ----------
+// ==========================================================
 function buildDetailBody(p) {
   const budget = toNumberOrNull(p.budget);
   const disbursed = toNumberOrNull(p.disbursed);
@@ -1442,6 +1539,7 @@ function clearForm() {
 }
 
 function showAddForm() {
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะเพิ่มโครงการได้", "error"); return; }
   clearForm();
   document.getElementById("formTitle").textContent = "➕ เพิ่มโครงการใหม่";
   document.getElementById("formCard").style.display = "block";
@@ -1454,7 +1552,11 @@ function hideForm() {
   hidePersonsError();
 }
 
+// ==========================================================
+// ฟังก์ชั่นแก้ไขโครงการ
+// ==========================================================
 function editProject(idx) {
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะแก้ไขโครงการได้", "error"); return; }
   const p = projects[idx];
   if (!p) return;
   clearForm();
@@ -1541,8 +1643,12 @@ function readForm() {
   return out;
 }
 
+// ==========================================================
+// ฟังก์ชั่นบันทึกโครงการ
+// ==========================================================
 function saveProject(e) {
   e.preventDefault();
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะบันทึกได้", "error"); return; }
   const data = readForm();
   if (!data) return;
 
@@ -1571,7 +1677,11 @@ function saveProject(e) {
   hideForm();
 }
 
+// ==========================================================
+// ฟังก์ชั่นลบโครงการ
+// ==========================================================
 function deleteProject(idx) {
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะลบโครงการได้", "error"); return false; }
   const p = projects[idx];
   if (!p) return false;
   if (!confirm('ยืนยันการลบรายการ "' + (p.contract_no || p.name || "(ไม่มีชื่อ)") + '"?')) return false;
@@ -1614,6 +1724,7 @@ async function deleteFromCloud(cloudId) {
 // นำเข้า / ส่งออกไฟล์
 // ==========================================================
 function exportData() {
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะส่งออกไฟล์ได้", "error"); return; }
   if (projects.length === 0) {
     showToast("ℹ️ ยังไม่มีข้อมูลให้ส่งออก", "info");
     return;
@@ -1631,6 +1742,7 @@ function exportData() {
 }
 
 function importData() {
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะนำเข้าไฟล์ได้", "error"); return; }
   const input = document.createElement("input");
   input.type = "file";
   input.accept = ".json,application/json";
@@ -1677,9 +1789,10 @@ function importData() {
 }
 
 // ==========================================================
-// ซิงค์: ดึงข้อมูลจาก Cloud (ครบทุกคอลัมน์)
+// ฟังก์ชั่นซิงค์: ดึงข้อมูลจาก Cloud (ครบทุกคอลัมน์)
 // ==========================================================
 async function syncFromSupabase() {
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะดึงข้อมูลจาก Cloud ได้", "error"); return; }
   if (!supabaseClient) {
     showToast("⚠️ ยังไม่ได้เชื่อมต่อ Supabase", "error");
     return;
@@ -1744,9 +1857,10 @@ async function syncFromSupabase() {
 }
 
 // ==========================================================
-// ซิงค์: ส่งข้อมูลขึ้น Cloud (ครบทุกคอลัมน์ + เคลียร์รายการรอลบ)
+// ฟังก์ชั่นซิงค์: ส่งข้อมูลขึ้น Cloud (ครบทุกคอลัมน์ + เคลียร์รายการรอลบ)
 // ==========================================================
 async function syncToSupabase() {
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะส่งข้อมูลขึ้น Cloud ได้", "error"); return; }
   if (!supabaseClient) {
     showToast("⚠️ ยังไม่ได้เชื่อมต่อ Supabase", "error");
     return;
