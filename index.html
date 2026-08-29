@@ -496,7 +496,62 @@ body.sheet-open { overflow: hidden; }
   .sheet-panel { max-height: 92vh; }
 }
 
+/* ===== หน้าล็อกอิน (รหัสผ่านทีม) ===== */
+#pinGate {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-page);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 8000;
+  padding: 1.25rem;
+}
+#pinGate.show { display: flex; }
+.pin-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.9rem;
+  box-shadow: var(--shadow-sm);
+  padding: 2rem 1.75rem;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
+.pin-box .pin-logo { font-size: 2rem; }
+.pin-box h2 {
+  font-family: "Kanit", sans-serif;
+  font-size: 1.05rem;
+  color: var(--primary);
+  margin: 0.6rem 0 0.3rem;
+}
+.pin-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.1rem; }
+.pin-box input {
+  width: 100%;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  text-align: center;
+  letter-spacing: 0.15rem;
+  margin-bottom: 0.75rem;
+}
+.pin-box input:focus-visible {
+  outline: 3px solid rgba(27,73,101,0.35);
+  outline-offset: 2px;
+  border-color: var(--primary-light);
+}
+.pin-box .btn { width: 100%; }
+.pin-error {
+  color: #b91c1c;
+  font-size: 0.82rem;
+  margin-top: 0.7rem;
+}
+.pin-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.9rem; }
+
 @media print {
+  #pinGate { display: none !important; }
   .btn-group, .toolbar, #formCard, .toast, #detailSheet, .pcard-hint { display: none !important; }
   .card-grid { grid-template-columns: 1fr 1fr; }
   .pcard { break-inside: avoid; box-shadow: none; }
@@ -510,6 +565,20 @@ body.sheet-open { overflow: hidden; }
   <div class="logo">🛣️ Highway WorkD</div>
   <div class="sub">ระบบบริหารจัดการสารสนเทศทางหลวง</div>
   <div class="status" id="splashStatus" role="status">กำลังโหลด...</div>
+</div>
+
+<!-- ===== หน้าล็อกอินด้วยรหัสผ่านทีม ===== */ -->
+<div id="pinGate" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+  <div class="pin-box">
+    <div class="pin-logo" aria-hidden="true">�️</div>
+    <h2 id="pinTitle">Highway WorkD</h2>
+    <p>กรอกรหัสผ่านของทีมเพื่อเข้าใช้งาน</p>
+    <label class="sr-only" for="pinInput">รหัสผ่าน</label>
+    <input type="password" id="pinInput" placeholder="รหัสผ่าน" autocomplete="current-password" inputmode="numeric">
+    <button type="button" class="btn btn-primary" id="btnPinSubmit">เข้าสู่ระบบ</button>
+    <div id="pinError" class="pin-error" role="alert" hidden>รหัสผ่านไม่ถูกต้อง ลองอีกครั้ง</div>
+    <div class="pin-hint">รหัสนี้เป็นเพียงการกันเปิดหน้าจอเบื้องต้น ไม่ใช่การรักษาความปลอดภัยของข้อมูล</div>
+  </div>
 </div>
 
 <!-- ===== เนื้อหาหลัก ===== -->
@@ -529,6 +598,7 @@ body.sheet-open { overflow: hidden; }
         <button type="button" class="btn" id="btnImport">📥 นำเข้าไฟล์</button>
         <button type="button" class="btn btn-success" id="btnDownload">⬇️ ดึงข้อมูลจาก Cloud</button>
         <button type="button" class="btn btn-warning" id="btnUpload">⬆️ ส่งข้อมูลขึ้น Cloud</button>
+        <button type="button" class="btn" id="btnLock">� ล็อกหน้าจอ</button>
       </div>
       <div class="toolbar">
         <label class="sr-only" for="searchBox">ค้นหาโครงการ</label>
@@ -670,9 +740,21 @@ const STORAGE_KEY = "highway_workd_data";
 const PENDING_DELETE_KEY = "highway_workd_pending_deletes";
 const TABLE_NAME = "construction_projects";
 
+// ==========================================================
+// � รหัสผ่านทีม (กันการเปิดหน้าจอเบื้องต้นเท่านั้น)
+// ⚠️ เปลี่ยนค่านี้เป็นรหัสของทีมคุณก่อนนำไปใช้จริง ห้ามใช้ 0000
+// ⚠️ รหัสนี้อยู่ฝั่งหน้าเว็บ คนที่เปิดดูโค้ดหน้าเว็บหาเจอได้
+//    การป้องกันข้อมูลจริงๆ ต้องตั้ง RLS + Policy ที่ฝั่งฐานข้อมูลเท่านั้น
+// ==========================================================
+const TEAM_PIN = "0000";
+const PIN_SESSION_KEY = "highway_workd_unlocked_until";
+const PIN_SESSION_HOURS = 12;   // เข้ารหัสครั้งหนึ่ง จำไว้กี่ชั่วโมง
+
+// ==========================================================
 // ============ ผังฟิลด์: id ในฟอร์ม  ↔  คอลัมน์ใน Supabase ============
 // แก้ไขบั๊กหลัก: โค้ดเดิมเรียก projectName / routeName / projectStatus / projectNote
 // ซึ่งไม่มีอยู่ใน HTML ทำให้ฟอร์มพังทั้งหมด
+// ==========================================================
 const FIELDS = [
   { el: "f_name",         col: "name",         type: "text" },
   { el: "f_year",         col: "year",         type: "text" },
@@ -768,23 +850,89 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function hideSplash() {
   const splash = document.getElementById("splashScreen");
-  const main = document.getElementById("mainContent");
   splash.style.opacity = "0";
   window.setTimeout(function () {
     splash.style.display = "none";
-    main.style.display = "block";
+    if (isUnlocked()) showApp();
+    else showPinGate();
   }, 400);
 }
 
 // ==========================================================
-// ผูก event ทั้งหมด (ไม่ใช้ inline onclick)
+// ระบบล็อกหน้าจอด้วยรหัสผ่านทีม
+// เป็นเพียงการกันคนเปิดหน้าจอเล่น ไม่ใช่การรักษาความปลอดภัยของข้อมูล
 // ==========================================================
+function isUnlocked() {
+  try {
+    const until = parseInt(localStorage.getItem(PIN_SESSION_KEY) || "0", 10);
+    if (!until || Number.isNaN(until)) return false;
+    if (Date.now() > until) { localStorage.removeItem(PIN_SESSION_KEY); return false; }
+    return true;
+  } catch (e) { return false; }
+}
+
+function markUnlocked() {
+  try {
+    localStorage.setItem(PIN_SESSION_KEY, String(Date.now() + PIN_SESSION_HOURS * 3600 * 1000));
+  } catch (e) { /* โหมดส่วนตัวอาจเก็บค่าไม่ได้ */ }
+}
+
+function showPinGate() {
+  const gate = document.getElementById("pinGate");
+  document.getElementById("mainContent").style.display = "none";
+  gate.classList.add("show");
+  const input = document.getElementById("pinInput");
+  input.value = "";
+  window.setTimeout(function () { input.focus(); }, 50);
+}
+
+function showApp() {
+  document.getElementById("pinGate").classList.remove("show");
+  document.getElementById("mainContent").style.display = "block";
+  renderList();
+}
+
+function checkPin() {
+  const input = document.getElementById("pinInput");
+  const err = document.getElementById("pinError");
+  if (input.value === TEAM_PIN) {
+    err.hidden = true;
+    input.value = "";
+    markUnlocked();
+    showApp();
+    showToast("✅ เข้าสู่ระบบสำเร็จ", "success");
+  } else {
+    err.hidden = false;
+    input.value = "";
+    input.focus();
+  }
+}
+
+function lockApp() {
+  try { localStorage.removeItem(PIN_SESSION_KEY); } catch (e) { /* ข้าม */ }
+  closeDetailSheet({ fromHistory: true });
+  hideForm();
+  document.getElementById("pinError").hidden = true;
+  showPinGate();
+}
+
+// ============ ผูก event ทั้งหมด (ไม่ใช้ inline onclick) ============
 function bindUI() {
   document.getElementById("btnAdd").addEventListener("click", showAddForm);
   document.getElementById("btnExport").addEventListener("click", exportData);
   document.getElementById("btnImport").addEventListener("click", importData);
   document.getElementById("btnDownload").addEventListener("click", syncFromSupabase);
   document.getElementById("btnUpload").addEventListener("click", syncToSupabase);
+  document.getElementById("btnLock").addEventListener("click", lockApp);
+
+  // หน้าล็อกอิน
+  document.getElementById("btnPinSubmit").addEventListener("click", checkPin);
+  document.getElementById("pinInput").addEventListener("keydown", function (ev) {
+    if (ev.key === "Enter") { ev.preventDefault(); checkPin(); }
+  });
+  document.getElementById("pinInput").addEventListener("input", function () {
+    document.getElementById("pinError").hidden = true;
+  });
   document.getElementById("btnCancelForm").addEventListener("click", hideForm);
   document.getElementById("projectForm").addEventListener("submit", saveProject);
   document.getElementById("searchBox").addEventListener("input", renderList);
