@@ -20,7 +20,6 @@
 
 <!-- ✅ Supabase SDK v2 (จะสร้างตัวแปร global ชื่อ supabase) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
 <style>
 :root {
   --primary: #1B4965;
@@ -605,9 +604,101 @@ body.sheet-open { overflow: hidden; }
 
 @media print {
   #pinGate { display: none !important; }
-  .btn-group, .toolbar, #formCard, .toast, #detailSheet, .pcard-hint { display: none !important; }
+  .btn-group, .toolbar, #formCard, .toast, #detailSheet, .pcard-hint, .fab { display: none !important; }
   .card-grid { grid-template-columns: 1fr 1fr; }
   .pcard { break-inside: avoid; box-shadow: none; }
+}
+
+/* ===== FAB (Floating Action Button) ===== */
+.fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #1e3a5f;
+  color: #fff;
+  border: none;
+  font-size: 1.75rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  z-index: 1000;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
+.fab:active {
+  transform: scale(0.95);
+}
+.fab.fab-hidden { display: none !important; }
+
+/* ===== Dynamic Committee Rows ===== */
+.committee-box {
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+}
+.committee-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+.committee-row input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  background: #fff;
+}
+.committee-row select {
+  max-width: 160px;
+  flex: 0 0 auto;
+  min-width: 120px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  background: #fff;
+}
+.committee-remove-btn {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  line-height: 1;
+  border-radius: 0.25rem;
+  flex-shrink: 0;
+}
+.committee-remove-btn:hover {
+  background: #fee2e2;
+}
+.committee-add-btn {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.35rem 0.8rem;
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #374151;
+}
+.committee-add-btn:hover {
+  background: #d1d5db;
 }
 </style>
 </head>
@@ -651,7 +742,6 @@ body.sheet-open { overflow: hidden; }
     <!-- === ปุ่มเมนูหลัก === -->
     <div class="card">
       <div class="btn-group">
-        <button type="button" class="btn btn-primary" id="btnAdd">➕ เพิ่มโครงการ</button>
         <button type="button" class="btn" id="btnExport">📤 ส่งออกไฟล์</button>
         <button type="button" class="btn" id="btnImport">📥 นำเข้าไฟล์</button>
         <button type="button" class="btn btn-success" id="btnDownload">⬇️ ดึงข้อมูลจาก Cloud</button>
@@ -740,10 +830,12 @@ body.sheet-open { overflow: hidden; }
           <textarea id="f_detail" placeholder="บันทึกรายละเอียด..."></textarea>
         </div>
         <div class="form-row">
-          <label for="f_persons">รายชื่อบุคลากร (JSON)</label>
-          <textarea id="f_persons" placeholder='[{"name":"สมชาย","position":"นายช่างโยธา","role":"ผู้ควบคุมงาน"}]' aria-describedby="personsHint"></textarea>
-          <div class="field-hint" id="personsHint">เว้นว่างได้ ถ้ากรอกต้องเป็น JSON ที่ถูกต้อง เช่น <code>[{"name":"สมชาย","position":"นายช่างโยธา","role":"ผู้ควบคุมงาน"}]</code></div>
-          <div class="field-error" id="personsError" hidden></div>
+          <label>👥 คณะกรรมการตรวจรับพัสดุ / ผู้ควบคุมงาน</label>
+          <div class="committee-box" id="committeeBox">
+            <div id="committeeRows"></div>
+            <button type="button" class="committee-add-btn" id="btnAddCommitteeRow">+ เพิ่มรายชื่อ</button>
+          </div>
+          <input type="hidden" id="f_persons" value="">
         </div>
         <div class="btn-group">
           <button type="submit" class="btn btn-success">💾 บันทึก</button>
@@ -780,6 +872,9 @@ body.sheet-open { overflow: hidden; }
     </div>
   </div>
 </div>
+
+<!-- ===== ปุ่มลอยเพิ่มโครงการ (FAB) ===== -->
+<button type="button" class="fab fab-hidden" id="fabAdd" aria-label="เพิ่มโครงการ" title="เพิ่มโครงการ">+</button>
 
 <!-- ===== Toast แจ้งเตือน ===== -->
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -979,7 +1074,10 @@ function showApp() {
 function applyRoleUI() {
   var isA = isAdmin();
   // ปุ่มในหน้าหลัก
-  var adminBtns = ["btnAdd", "btnExport", "btnImport", "btnDownload", "btnUpload"];
+  var adminBtns = ["btnExport", "btnImport", "btnDownload", "btnUpload"];
+  // FAB ปุ่มลอยเพิ่มโครงการ — ซ่อนจาก Viewer
+  var fab = document.getElementById("fabAdd");
+  if (fab) fab.classList.toggle("fab-hidden", !isA);
   adminBtns.forEach(function (id) {
     var el = document.getElementById(id);
     if (el) el.style.display = isA ? "" : "none";
@@ -1031,7 +1129,8 @@ function lockApp() {
 
 // ============ ผูก event ทั้งหมด (ไม่ใช้ inline onclick) ============
 function bindUI() {
-  document.getElementById("btnAdd").addEventListener("click", showAddForm);
+  document.getElementById("fabAdd").addEventListener("click", showAddForm);
+  document.getElementById("btnAddCommitteeRow").addEventListener("click", function() { addCommitteeRow(); });
   document.getElementById("btnExport").addEventListener("click", exportData);
   document.getElementById("btnImport").addEventListener("click", importData);
   document.getElementById("btnDownload").addEventListener("click", syncFromSupabase);
@@ -1535,13 +1634,16 @@ function clearForm() {
     else if (f.el === "f_progress") el.value = "0";
     else el.value = "";
   });
-  hidePersonsError();
+  populateCommitteeFromData([]);
 }
 
 function showAddForm() {
   if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะเพิ่มโครงการได้", "error"); return; }
   clearForm();
   document.getElementById("formTitle").textContent = "➕ เพิ่มโครงการใหม่";
+  // ซ่อน FAB ขณะเปิดฟอร์ม
+  var fab = document.getElementById("fabAdd");
+  if (fab) fab.classList.add("fab-hidden");
   document.getElementById("formCard").style.display = "block";
   document.getElementById("formCard").scrollIntoView({ behavior: "smooth", block: "start" });
   document.getElementById("f_name").focus();
@@ -1549,7 +1651,9 @@ function showAddForm() {
 
 function hideForm() {
   document.getElementById("formCard").style.display = "none";
-  hidePersonsError();
+  // แสดง FAB กลับเมื่อปิดฟอร์ม (ถ้าเป็นผู้ดูแล)
+  var fab = document.getElementById("fabAdd");
+  if (fab && isAdmin()) fab.classList.remove("fab-hidden");
 }
 
 // ==========================================================
@@ -1575,27 +1679,29 @@ function editProject(idx) {
     else el.value = v === null || v === undefined ? "" : String(v);
   });
 
+  // แสดงข้อมูลคณะกรรมการใน dynamic rows
+  populateCommitteeFromData(p.persons);
+
+  // ซ่อน FAB ขณะเปิดฟอร์ม
+  var fab = document.getElementById("fabAdd");
+  if (fab) fab.classList.add("fab-hidden");
+
   document.getElementById("formCard").style.display = "block";
   document.getElementById("formCard").scrollIntoView({ behavior: "smooth", block: "start" });
   document.getElementById("f_name").focus();
 }
 
 function showPersonsError(msg) {
-  const el = document.getElementById("personsError");
-  el.textContent = "⚠️ " + msg;
-  el.hidden = false;
+  showToast("⚠️ " + msg, "error");
 }
 function hidePersonsError() {
-  const el = document.getElementById("personsError");
-  el.textContent = "";
-  el.hidden = true;
-}
+  /* no-op: ใช้ toast แทน personsError div */ }
 
 // ==========================================================
 // อ่านค่าจากฟอร์ม → คืน object ตามคอลัมน์จริงของตาราง (หรือ null ถ้าข้อมูลไม่ผ่าน)
 // ==========================================================
 function readForm() {
-  hidePersonsError();
+  syncCommitteeToHidden();
   const out = {};
 
   for (let i = 0; i < FIELDS.length; i++) {
@@ -1620,7 +1726,7 @@ function readForm() {
           if (typeof parsed !== "object" || parsed === null) throw new Error("ต้องเป็น array หรือ object");
           out[f.col] = parsed;
         } catch (e) {
-          showPersonsError("รายชื่อบุคลากรไม่ใช่ JSON ที่ถูกต้อง: " + e.message);
+          showToast("⚠️ รายชื่อบุคลากรไม่ใช่ JSON ที่ถูกต้อง: " + e.message, "error");
           el.focus();
           return null;
         }
@@ -1957,6 +2063,128 @@ function showToast(message, type) {
   toastTimer = window.setTimeout(function () {
     toast.classList.remove("show");
   }, 3500);
+}
+
+// ==========================================================
+// Dynamic Committee Rows — เพิ่มทีละคน
+// ==========================================================
+var COMMITTEE_ROLES = ["ประธานกรรมการ", "กรรมการ", "เลขานุการ", "ผู้ควบคุมงาน", "ผู้ตรวจสอบ", "ผู้แทนเจ้าของงาน", "อื่นๆ"];
+
+function createCommitteeRow(data) {
+  data = data || {};
+  var row = document.createElement("div");
+  row.className = "committee-row";
+
+  var nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.placeholder = "ชื่อ-นามสกุล";
+  nameInput.value = data.name || "";
+  nameInput.setAttribute("aria-label", "ชื่อ-นามสกุล");
+
+  var posInput = document.createElement("input");
+  posInput.type = "text";
+  posInput.placeholder = "ตำแหน่ง";
+  posInput.value = data.position || "";
+  posInput.setAttribute("aria-label", "ตำแหน่ง");
+
+  var roleSelect = document.createElement("select");
+  roleSelect.setAttribute("aria-label", "บทบาทหน้าที่");
+  var defaultOpt = document.createElement("option");
+  defaultOpt.value = "";
+  defaultOpt.textContent = "— บทบาท —";
+  roleSelect.appendChild(defaultOpt);
+  COMMITTEE_ROLES.forEach(function(r) {
+    var opt = document.createElement("option");
+    opt.value = r;
+    opt.textContent = r;
+    if (data.role === r) opt.selected = true;
+    roleSelect.appendChild(opt);
+  });
+  // ถ้าบทบาทไม่อยู่ในรายการมาตรฐาน ให้เพิ่มเป็น custom option
+  if (data.role && COMMITTEE_ROLES.indexOf(data.role) === -1) {
+    var customOpt = document.createElement("option");
+    customOpt.value = data.role;
+    customOpt.textContent = data.role;
+    customOpt.selected = true;
+    roleSelect.appendChild(customOpt);
+  }
+
+  var removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "committee-remove-btn";
+  removeBtn.textContent = "✕";
+  removeBtn.title = "ลบรายชื่อ";
+  removeBtn.setAttribute("aria-label", "ลบรายชื่อ");
+  removeBtn.addEventListener("click", function() {
+    removeCommitteeRow(row);
+  });
+
+  row.appendChild(nameInput);
+  row.appendChild(posInput);
+  row.appendChild(roleSelect);
+  row.appendChild(removeBtn);
+
+  return row;
+}
+
+function addCommitteeRow(data) {
+  var container = document.getElementById("committeeRows");
+  if (!container) return;
+  var row = createCommitteeRow(data);
+  container.appendChild(row);
+  var nameInput = row.querySelector('input[aria-label="ชื่อ-นามสกุล"]');
+  if (nameInput) nameInput.focus();
+}
+
+function removeCommitteeRow(rowEl) {
+  var container = document.getElementById("committeeRows");
+  if (!container) return;
+  // ต้องมีอย่างน้อย 1 แถว — ถ้าเหลือแถวเดียวให้เคลียร์ค่าแทนการลบ
+  if (container.children.length <= 1) {
+    var inputs = rowEl.querySelectorAll('input[type="text"]');
+    inputs.forEach(function(inp) { inp.value = ""; });
+    var sel = rowEl.querySelector("select");
+    if (sel) sel.value = "";
+    return;
+  }
+  container.removeChild(rowEl);
+}
+
+function syncCommitteeToHidden() {
+  var container = document.getElementById("committeeRows");
+  var hiddenInput = document.getElementById("f_persons");
+  if (!container || !hiddenInput) return;
+
+  var persons = [];
+  var rows = container.querySelectorAll(".committee-row");
+  rows.forEach(function(row) {
+    var inputs = row.querySelectorAll('input[type="text"]');
+    var sel = row.querySelector("select");
+    var n = inputs[0] ? inputs[0].value.trim() : "";
+    var p = inputs[1] ? inputs[1].value.trim() : "";
+    var r = sel ? sel.value.trim() : "";
+    if (n || p || r) {
+      persons.push({ name: n, position: p, role: r });
+    }
+  });
+
+  hiddenInput.value = persons.length > 0 ? JSON.stringify(persons) : "";
+}
+
+function populateCommitteeFromData(persons) {
+  var container = document.getElementById("committeeRows");
+  if (!container) return;
+  container.innerHTML = "";
+
+  var arr = Array.isArray(persons) ? persons : [];
+  if (arr.length === 0) {
+    addCommitteeRow({}); // เริ่มต้น 1 แถวว่าง
+  } else {
+    arr.forEach(function(p) {
+      var data = (typeof p === "object" && p !== null) ? p : { name: String(p) };
+      addCommitteeRow(data);
+    });
+  }
 }
 </script>
 
