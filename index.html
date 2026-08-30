@@ -2,10 +2,10 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="HighwayWorkD">
 <meta name="theme-color" content="#1B4965">
 <link rel="manifest" href="manifest.json">
@@ -30,6 +30,12 @@
   --text-muted: #6b7280;
   --border-color: #d1d5db;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+
+  /* ===== Safe-area (รองรับ black-translucent / รอยบาก iPhone) ===== */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -74,7 +80,16 @@ body {
 /* ===== เนื้อหาหลัก ===== */
 #mainContent { display: none; }
 
-.container { max-width: 1100px; margin: 0 auto; padding: 1rem; }
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+  /* กันเนื้อหาไม่ให้ถูกนาฬิกา/รอยบาก/แถบเลื่อนล่างทับ */
+  padding-top: calc(1rem + var(--sat));
+  padding-bottom: calc(1rem + var(--sab));
+  padding-left: calc(1rem + var(--sal));
+  padding-right: calc(1rem + var(--sar));
+}
 
 header { text-align: center; padding: 1rem 0; }
 header h1 {
@@ -383,7 +398,7 @@ td.num, th.num { text-align: right; }
 
 .sheet-foot {
   padding: 0.7rem 1rem;
-  padding-bottom: calc(0.7rem + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(0.7rem + var(--sab));
   border-top: 1px solid #e5e7eb;
   background: #f9fafb;
   display: flex;
@@ -490,7 +505,7 @@ body.sheet-open { overflow: hidden; }
 
 .toast {
   position: fixed;
-  bottom: 1rem;
+  bottom: calc(1rem + var(--sab));
   left: 50%;
   transform: translateX(-50%) translateY(150px);
   background: #1f2937;
@@ -535,7 +550,7 @@ body.sheet-open { overflow: hidden; }
   align-items: center;
   justify-content: center;
   z-index: 8000;
-  padding: 1.25rem;
+  padding: calc(1.25rem + var(--sat)) calc(1.25rem + var(--sar)) calc(1.25rem + var(--sab)) calc(1.25rem + var(--sal));
 }
 #pinGate.show { display: flex; }
 .pin-box {
@@ -604,7 +619,8 @@ body.sheet-open { overflow: hidden; }
 
 @media print {
   #pinGate { display: none !important; }
-  .btn-group, .toolbar, #formCard, .toast, #detailSheet, .pcard-hint, .fab { display: none !important; }
+  .btn-group, .toolbar, #formCard, .toast, #detailSheet, .pcard-hint, .fab, .safe-top-bar { display: none !important; }
+  .container { padding: 1rem !important; }
   .card-grid { grid-template-columns: 1fr 1fr; }
   .pcard { break-inside: avoid; box-shadow: none; }
 }
@@ -612,8 +628,8 @@ body.sheet-open { overflow: hidden; }
 /* ===== FAB (Floating Action Button) ===== */
 .fab {
   position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
+  bottom: calc(1.5rem + var(--sab));
+  right: calc(1.5rem + var(--sar));
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -638,6 +654,18 @@ body.sheet-open { overflow: hidden; }
   transform: scale(0.95);
 }
 .fab.fab-hidden { display: none !important; }
+
+/* ===== แถบสีเข้มรองหลังนาฬิกา/แบต (เพราะ black-translucent ทำให้ตัวอักษรเป็นสีขาว) ===== */
+.safe-top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--sat);
+  background: var(--primary);
+  z-index: 10000;
+  pointer-events: none;
+}
 
 /* ===== Dynamic Committee Rows ===== */
 .committee-box {
@@ -703,6 +731,7 @@ body.sheet-open { overflow: hidden; }
 </style>
 </head>
 <body>
+<div class="safe-top-bar"></div>
 
 <!-- ===== หน้าจอเริ่มต้น ===== -->
 <div id="splashScreen">
@@ -1498,7 +1527,7 @@ function buildDetailBody(p) {
   const persons = Array.isArray(p.persons) ? p.persons : [];
   if (persons.length > 0) {
     h += '<div class="detail-block">' +
-      '<span class="block-label">� คณะกรรมการตรวจรับพัสดุและผู้ควบคุมงาน</span>' +
+      '<span class="block-label">👥 คณะกรรมการตรวจรับพัสดุและผู้ควบคุมงาน</span>' +
       '<table class="person-table">' +
       '<thead><tr><th>ลำดับ</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>บทบาทหน้าที่</th></tr></thead><tbody>';
     persons.forEach(function (person, idx) {
