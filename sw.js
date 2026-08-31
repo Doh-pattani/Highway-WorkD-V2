@@ -140,6 +140,9 @@ self.addEventListener('fetch', e => {
   // ข้าม POST/PUT/DELETE (การเขียนข้อมูลต้องผ่านเครือข่ายเท่านั้น)
   if (e.request.method !== 'GET') return;
 
+// ✅ เพิ่มบรรทัดนี้: ข้าม request ที่ไม่ใช่ http/https (ป้องกัน error จาก chrome-extension://)
+  if (!e.request.url.startsWith('http')) return;
+
   const strategy = getStrategy(e.request);
 
   switch (strategy) {
