@@ -747,16 +747,15 @@ body.sheet-open { overflow: hidden; }
     <div class="pin-logo" aria-hidden="true">🛣️</div>
     <h2 id="pinTitle">Highway WorkD</h2>
     <p>กรอกรหัสผ่านเพื่อเข้าใช้งาน</p>
-    <div class="pin-role-select">
-      <label><input type="radio" name="pinRole" value="admin" id="pinRoleAdmin"> 🛡️ ผู้ดูแล</label>
-      <label><input type="radio" name="pinRole" value="viewer" id="pinRoleViewer" checked> 👁️ ผู้ใช้ทั่วไป</label>
-    </div>
     <label class="sr-only" for="pinInput">รหัสผ่าน</label>
     <input type="password" id="pinInput" placeholder="รหัสผ่าน" autocomplete="current-password" inputmode="numeric">
     <button type="button" class="btn btn-primary" id="btnPinSubmit">เข้าสู่ระบบ</button>
     <div id="pinError" class="pin-error" role="alert" hidden>รหัสผ่านไม่ถูกต้อง ลองอีกครั้ง</div>
-    <div class="pin-hint">🛡️ <strong>ผู้ดูแล</strong> = เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud &nbsp;|&nbsp; 👁️ <strong>ผู้ใช้ทั่วไป</strong> = ดูได้อย่างเดียว</div>
-    <div class="pin-hint pin-hint-warn">⚠️ รหัสเริ่มต้น: ผู้ดูแล=1234, ผู้ใช้ทั่วไป=0000 — <strong>เปลี่ยนก่อนใช้จริง!</strong></div>
+    <div class="pin-hint">🛡️ <strong>ผู้ดูแล</strong> = เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud</div>
+    <div 👁️ <strong>ผู้ใช้ทั่วไป</strong> = ดูได้อย่างเดียว</div>
+
+<!-- ===== Password Hint ===== -->
+//⚠️ รหัสเริ่มต้น: ผู้ดูแล=1234, ผู้ใช้ทั่วไป=0000
   </div>
 </div>
 
