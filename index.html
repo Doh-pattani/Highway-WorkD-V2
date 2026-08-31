@@ -596,15 +596,6 @@ body.sheet-open { overflow: hidden; }
 }
 .pin-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.9rem; }
 .pin-hint-warn { color: #b91c1c; font-weight: 600; }
-.pin-role-select {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  margin-bottom: 0.75rem;
-  font-size: 0.85rem;
-}
-.pin-role-select label { cursor: pointer; }
-.pin-role-select input[type="radio"] { margin-right: 0.3rem; accent-color: var(--primary); }
 
 /* ป้ายบอก role บนหัวหน้าหลัก */
 .role-badge {
@@ -1083,14 +1074,12 @@ function showPinGate() {
   gate.classList.add("show");
   const input = document.getElementById("pinInput");
   input.value = "";
-  // ตั้งค่า role selector ให้ตรงกับ session เดิม (ถ้ามี) หรือ default viewer
+  
+  // โหลด placeholder ตามสิทธิ์ที่เคยเข้าระบบล่าสุด
   var prev = currentRole();
-  document.getElementById("pinRoleAdmin").checked = (prev === "admin");
-  document.getElementById("pinRoleViewer").checked = (prev !== "admin");
   input.placeholder = prev === "admin" ? "PIN ผู้ดูแล" : "PIN ผู้ใช้ทั่วไป";
   window.setTimeout(function () { input.focus(); }, 50);
 }
-
 function showApp() {
   document.getElementById("pinGate").classList.remove("show");
   document.getElementById("mainContent").style.display = "block";
@@ -1164,17 +1153,6 @@ function bindUI() {
   document.getElementById("btnDownload").addEventListener("click", syncFromSupabase);
   document.getElementById("btnUpload").addEventListener("click", syncToSupabase);
   document.getElementById("btnLock").addEventListener("click", lockApp);
-
-  // เลือก role ที่หน้าล็อกอิน
-  document.querySelectorAll('input[name="pinRole"]').forEach(function (rb) {
-    rb.addEventListener("change", function () {
-      var input = document.getElementById("pinInput");
-      input.value = "";
-      document.getElementById("pinError").hidden = true;
-      input.placeholder = rb.value === "admin" ? "PIN ผู้ดูแล" : "PIN ผู้ใช้ทั่วไป";
-      input.focus();
-    });
-  });
 
   // หน้าล็อกอิน
   document.getElementById("btnPinSubmit").addEventListener("click", checkPin);
