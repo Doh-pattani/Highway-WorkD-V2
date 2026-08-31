@@ -2207,7 +2207,7 @@ if ('serviceWorker' in navigator) {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
           // มีเวอร์ชันใหม่พร้อมใช้ → แสดงแจ้งเตือน
           if (confirm('🔄 มีอัปเดตใหม่พร้อมใช้งาน\nต้องการรีเฟรชเพื่ออัปเดตเลยไหม?')) {
-            newWorker.postMessage({ type: 'skip-waiting' });
+            newWorker.postMessage({ type: 'skip-waiting' });// ส่งข้อความไปหา SW ตัวใหม่
           }
         }
       });
