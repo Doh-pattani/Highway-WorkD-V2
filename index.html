@@ -887,13 +887,13 @@ body.sheet-open { overflow: hidden; }
           <div style="font-weight: 500; margin-bottom: 0.25rem; font-size: 0.95rem;">👥 คณะกรรมการตรวจรับพัสดุ / ผู้ควบคุมงาน</div>
           <div class="committee-box" id="committeeBox">
             <div id="committeeRows"></div>
-            <button type="button" class="committee-add-btn" id="btnAddCommitteeRow" data-admin-only>+ เพิ่มรายชื่อ</button>
+            <button type="button" class="committee-add-btn" id="btnAddCommitteeRow">+ เพิ่มรายชื่อ</button>
           </div>
           <input type="hidden" id="f_persons" value="">
         </div>
         <div class="btn-group">
-          <button type="submit" class="btn btn-success" data-admin-only>💾 บันทึก</button>
-          <button type="button" class="btn" id="btnCancelForm" data-admin-only>❌ ยกเลิก</button>
+          <button type="submit" class="btn btn-success">💾 บันทึก</button>
+          <button type="button" class="btn" id="btnCancelForm">❌ ยกเลิก</button>
         </div>
       </form>
     </div>
@@ -925,14 +925,14 @@ body.sheet-open { overflow: hidden; }
     </div>
     <div class="sheet-body" id="sheetBody"></div>
     <div class="sheet-foot">
-      <button type="button" class="btn btn-success" id="btnSheetEdit" data-admin-only>✏️ แก้ไขข้อมูล</button>
-      <button type="button" class="btn btn-danger" id="btnSheetDelete" data-admin-only>🗑️ ลบ</button>
+      <button type="button" class="btn btn-success" id="btnSheetEdit">✏️ แก้ไขข้อมูล</button>
+      <button type="button" class="btn btn-danger" id="btnSheetDelete">🗑️ ลบ</button>
     </div>
   </div>
 </div>
 
 <!-- ===== ปุ่มลอยเพิ่มโครงการ (FAB) ===== -->
-<button type="button" class="fab fab-hidden" id="fabAdd" aria-label="เพิ่มโครงการ" title="เพิ่มโครงการ" data-admin-only>+</button>
+<button type="button" class="fab fab-hidden" id="fabAdd" aria-label="เพิ่มโครงการ" title="เพิ่มโครงการ">+</button>
 
 <!-- ===== Toast แจ้งเตือน ===== -->
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -1171,78 +1171,31 @@ function showApp() {
   renderList();
 }
 
-// ==========================================================
-// 🔐 โครงสร้างสิทธิ์การใช้งาน
-// ==========================================================
-
-// กำหนดสิทธิ์
-const CAN = {
-  admin:  { create: true,  update: true,  delete: true  },
-  viewer: { create: false, update: false, delete: false }
-};
-
-// ✅ กำหนดค่าเท่านั้น ไม่ต้องใส่ let/const เพราะมีประกาศไว้แล้ว
-currentRole = localStorage.getItem('approle') || 'viewer';
-
-/** เช็คสิทธิ์ตาม role ปัจจุบัน */
-const can = (action) => !!CAN[currentRole]?.[action];
-const isAdmin = () => currentRole === "admin";
-
-/** จัดการการแสดงผล UI ตามสิทธิ์ */
+/** ซ่อน/แสดงปุ่มตามสิทธิ์ (viewer = ซ่อนปุ่ม admin-only) */
 function applyRoleUI() {
-  const isA = can('create'); // เช็คสิทธิ์ (แทน isAdmin() เดิม)
-
-// รายการฟิลด์ในฟอร์ม — ต้องประกาศรายการฟิลด์ที่นี่ หรือที่อื่นก่อนเรียกใช้
-const FIELDS = ["name", "source", "year", "status", "contractor", "budget", "disbursed", "progress", "persons", "detail", "conract_no", "route_no", "section_name", "km_range"]; // ✅ ใส่ id ของ input ต่างๆ เช่น ["projName", "budget", ...]
-
-// ==========================================================
-// 🎨 ปรับหน้าจอตามสิทธิ์
-// ==========================================================
-function applyRoleUI() {
-  const isA = isAdmin();
-
-  // 1️⃣ ปุ่มในหน้าหลัก — ซ่อนถ้าไม่ใช่แอดมิน
-  const adminBtns = ["btnExport", "btnImport", "btnDownload", "btnUpload", "btnSheetEdit", "btnSheetDelete"];
-  adminBtnIds.forEach(id => {
-    const el = document.getElementById(id);
+  var isA = isAdmin();
+  // ปุ่มในหน้าหลัก
+  var adminBtns = ["btnExport", "btnImport", "btnDownload", "btnUpload"];
+  // FAB ปุ่มลอยเพิ่มโครงการ — ซ่อนจาก Viewer
+  var fab = document.getElementById("fabAdd");
+  if (fab) fab.classList.toggle("fab-hidden", !isA);
+  adminBtns.forEach(function (id) {
+    var el = document.getElementById(id);
     if (el) el.style.display = isA ? "" : "none";
   });
-
-  // 2️⃣ ปุ่มลอยเพิ่มโครงการ — ซ่อนจาก Viewer
-  const fab = document.getElementById("fabAdd");
-  if (fab) fab.classList.toggle("fab-hidden", !isA);
-
-  // 3️⃣ ปุ่มในแผ่นรายละเอียด (แก้ไข / ลบ)
-  const sheetBtnIds = ["btnSheetEdit", "btnSheetDelete"];
-  sheetBtnIds.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.hidden = !isA;
+  // ปุ่มใน detail sheet (แก้ไข / ลบ)
+  var sheetBtns = ["btnSheetEdit", "btnSheetDelete"];
+  sheetBtns.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = isA ? "" : "none";
   });
-
-  // 4️⃣ จัดการปุ่ม/องค์ประกอบที่มี attribute data-admin-only ไว้ใน HTML
-  document.querySelectorAll('[data-admin-only]').forEach(el => {
-    el.hidden = !isA;
-  });
-
-  // 5️⃣ ฟอร์มเป็นอ่านอย่างเดียวสำหรับ Viewer
-    FIELDS.forEach(f => {
-    const el = document.getElementById(f.el); // ใช้ f.el เพราะ FIELDS เก็บข้อมูลเป็น Object
-    if (el) { 
-      el.disabled = !isA; 
-      el.readOnly = !isA; 
-    }
-  });
-
-  // 6️⃣ อัพเดตป้ายแสดงสถานะสิทธิ์
-  const badge = document.getElementById('roleBadge');
+  // แสดงบั้นร์บอก role
+  var badge = document.getElementById("roleBadge");
   if (badge) {
-    badge.textContent = isA ? '👤 ผู้ดูแล' : '👁 ผู้ใช้ทั่วไป (ดูอย่างเดียว)';
-    badge.className = 'roleBadge' + isA ? 'role-admin' : 'role-viewer');
+    badge.textContent = isA ? "🛡️ ผู้ดูแล" : "👁️ ผู้ใช้ทั่วไป";
+    badge.className = "role-badge " + (isA ? "role-admin" : "role-viewer");
   }
 }
-
-// เรียกใช้งานเมื่อโหลดหน้าเสร็จ
-// document.addEventListener('DOMContentLoaded', applyRoleUI);
 
 function checkPin() {
   const input = document.getElementById("pinInput");
@@ -1403,54 +1356,26 @@ function updateSplashStatus(text) {
 // ==========================================================
 //   ฟังก์ชั่นโหลด / บันทึกข้อมูลในเครื่อง
 // ==========================================================
-let projects = [];
-
-async function boot() {
-  // 1) แสดง cache เดิมทันที (ถ้ามี) — ไม่ต้องรอเน็ต
-  projects = loadCache();
-  if (projects.length) renderList(projects);
-  else showState('loading');
-
-  // 2) ดึงจากคลาวด์เสมอ ไม่ว่า role ไหน  ← จุดที่แก้บั๊ก
+function loadData() {
   try {
-    const { data, error } = await supabase
-      .from('construction_projects')
-      .select('*')
-      .order('updated_at', { ascending: false });
-
-    if (error) throw error;
-
-    projects = (data || []).map(normalizeRow);
-    saveCache(projects);
-    renderList(projects);
-
-    if (!projects.length) showState('empty');
-    else showState('ok');
-
-  } catch (err) {
-    console.warn('[sync] ดึงข้อมูลไม่สำเร็จ:', err.message);
-    // ออฟไลน์ + ไม่มี cache → บอกให้ชัดว่าคนละเรื่องกับ "ไม่มีข้อมูล"
-    showState(projects.length ? 'stale' : 'offline');
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      projects = Array.isArray(parsed) ? parsed.map(migrateRecord) : [];
+      console.log("📂 โหลดข้อมูล " + projects.length + " รายการจากเครื่อง");
+    }
+  } catch (e) {
+    console.error("❌ โหลดข้อมูลไม่สำเร็จ:", e && e.message);
+    projects = [];
   }
-
-  applyRoleUI();
+  try {
+    const pd = localStorage.getItem(PENDING_DELETE_KEY);
+    const parsed = pd ? JSON.parse(pd) : [];
+    pendingDeletes = Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    pendingDeletes = [];
+  }
 }
-
-function showState(s) {
-  const box = document.getElementById('emptyState');
-  if (!box) return;
-  const msg = {
-    loading: '⏳ กำลังโหลดข้อมูลจากคลาวด์...',
-    empty:   '📭 ยังไม่มีโครงการในระบบ',
-    offline: '📡 ออฟไลน์ — ยังไม่มีข้อมูลในเครื่อง กรุณาเชื่อมต่ออินเทอร์เน็ต',
-    stale:   '⚠️ แสดงข้อมูลที่บันทึกไว้ล่าสุด (ออฟไลน์)',
-    ok:      ''
-  }[s];
-  box.textContent = msg;
-  box.hidden = !msg;
-}
-
-document.addEventListener('DOMContentLoaded', boot);
 
 // ==========================================================
 //   รองรับข้อมูลเก่าที่ใช้ createdAt / updatedAt (camelCase)
