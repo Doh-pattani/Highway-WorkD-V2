@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th"> 
+<html lang="th">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -720,6 +720,39 @@ body.sheet-open { overflow: hidden; }
 .committee-add-btn:hover {
   background: #d1d5db;
 }
+
+/* ===== แท็บกรองปีงบประมาณ ===== */
+.year-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -ms-overflow-style: none; /* ซ่อน Scrollbar ของ IE/Edge */
+  scrollbar-width: none; /* ซ่อน Scrollbar ของ Firefox */
+}
+.year-tabs::-webkit-scrollbar { display: none; /* ซ่อน Scrollbar ของ Chrome/Safari */ }
+
+.year-tab {
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: #f3f4f6;
+  color: var(--text-muted);
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: 'Kanit', sans-serif;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.year-tab:hover { background: #e5e7eb; }
+.year-tab.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 4px 10px rgba(27, 73, 101, 0.25);
+}
 </style>
 </head>
 <body>
@@ -865,6 +898,10 @@ body.sheet-open { overflow: hidden; }
     <!-- === ตารางแสดงรายการ === -->
     <div class="card">
       <h3>รายการโครงการ <span id="projectCount" style="font-size:0.85rem;color:var(--text-muted);font-weight:normal;"></span></h3>
+
+    <!-- 📍 จุดแสดงแท็บปีงบประมาณ -->
+      <div id="yearTabsContainer" class="year-tabs"></div>
+
       <div id="projectList"></div>
     </div>
   </div>
@@ -913,7 +950,7 @@ const TABLE_NAME = "construction_projects";
 
 // ==========================================================
 // 🔐 ระบบสิทธิ์ 2 ระดับ
-//   • ADMIN_PIN  = : เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud ได้ทุกอย่าง
+//   • ADMIN_PIN  = ผู้ดูแล: เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud ได้ทุกอย่าง
 //   • VIEWER_PIN = ผู้ใช้ทั่วไป: ดูได้อย่างเดียว ห้ามเพิ่ม/แก้ไข/ลบ
 // ⚠️ เปลี่ยน PIN ทั้ง 2 ค่าเป็นรหัสของทีมคุณก่อนนำไปใช้จริง!
 //   - ADMIN_PIN: ห้ามใช้ 1234 ในชีวิตจริง
@@ -921,7 +958,7 @@ const TABLE_NAME = "construction_projects";
 // ⚠️ รหัสเหล่านี้อยู่ฝั่งหน้าเว็บ คนที่เปิดดูโค้ดหน้าเว็บหาเจอได้
 //    การป้องกันข้อมูลจริงๆ ต้องตั้ง RLS + Policy ที่ฝั่งฐานข้อมูลเท่านั้น
 // ==========================================================
-const ADMIN_PIN  = "1234";   // 🔑 PIN สำหรับ (เปลี่ยนก่อนใช้จริง!)
+const ADMIN_PIN  = "1234";   // 🔑 PIN สำหรับผู้ดูแล (เปลี่ยนก่อนใช้จริง!)
 const VIEWER_PIN = "0000";   // 👁️ PIN สำหรับผู้ใช้ทั่วไป (เปลี่ยนก่อนใช้จริง!)
 const PIN_SESSION_KEY = "highway_workd_unlocked_until";
 const PIN_ROLE_KEY = "highway_workd_role";       // เก็บ role: "admin" หรือ "viewer"
@@ -1006,7 +1043,47 @@ let visibleIndexes = [];   // map แถวที่แสดง -> index จร
 let activeDetailIndex = -1;      // index โครงการที่กำลังเปิดแท็บรายละเอียด
 let activeDetailKey = null;      // key ของโครงการนั้น (ทนต่อการเรียงลำดับใหม่)
 let sheetHistoryPushed = false;  // เพิ่ม history entry ไว้หรือยัง (ใช้กับปุ่มย้อนกลับ)
+// ตัวแปรเก็บค่าปีที่กำลังเลือกอยู่
+let activeYearFilter = 'ทั้งหมด'; 
 
+// ฟังก์ชันสร้างแท็บปีอัตโนมัติ
+function renderYearTabs() {
+  const container = document.getElementById('yearTabsContainer');
+  if (!container) return;
+
+  // กวาดหาปี พ.ศ. จากโครงการทั้งหมดที่มีอยู่ในระบบตอนนี้ (ถ้าไม่มีข้อมูล ปีนั้นจะไม่โผล่มา)
+  const yearsSet = new Set();
+  projects.forEach(p => {
+    if (p.year && String(p.year).trim() !== "") {
+      yearsSet.add(String(p.year).trim());
+    }
+  });
+
+  const years = Array.from(yearsSet);
+
+  // ถ้าไม่มีข้อมูลเลย ให้ซ่อนแท็บ
+  if (years.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  // 📍 เรียงลำดับปีจากน้อยไปหามาก (เช่น 2568, 2569)
+  years.sort((a, b) => a.localeCompare(b, 'th', { numeric: true }));
+
+  let html = `<button class="year-tab ${activeYearFilter === 'ทั้งหมด' ? 'active' : ''}" onclick="setYearFilter('ทั้งหมด')">ทั้งหมด</button>`;
+
+  years.forEach(y => {
+    html += `<button class="year-tab ${activeYearFilter === y ? 'active' : ''}" onclick="setYearFilter('${y}')">ปี ${y}</button>`;
+  });
+
+  container.innerHTML = html;
+}
+
+// ฟังก์ชันเมื่อกดเลือกแท็บปี
+function setYearFilter(year) {
+  activeYearFilter = year;
+  renderList(); // สั่งโหลดการ์ดใหม่ตามปีที่เลือก
+}
 // ==========================================================
 // เริ่มต้นแอป
 // ==========================================================
@@ -1055,7 +1132,7 @@ function currentRole() {
   } catch (e) { return "viewer"; }
 }
 
-/** ตรวจว่าเป็นหรือไม่ */
+/** ตรวจว่าเป็นผู้ดูแลหรือไม่ */
 function isAdmin() {
   return currentRole() === "admin";
 }
