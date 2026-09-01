@@ -229,6 +229,7 @@ td.num, th.num { text-align: right; }
 .pcard:active { transform: translateY(0); }
 .pcard[data-status="pending"]    { border-left-color: #9ca3af; }
 .pcard[data-status="progress"]   { border-left-color: #2563eb; }
+.pcard[data-status="waitdeliver"] { border-left-color: #8b5cf6; }
 .pcard[data-status="waitpay"]    { border-left-color: #d97706; }
 .pcard[data-status="done"]       { border-left-color: #059669; }
 .pcard[data-status="terminated"] { border-left-color: #dc2626; }
@@ -497,6 +498,7 @@ body.sheet-open { overflow: hidden; }
 }
 .status-pending    { background: #e5e7eb; color: #374151; }
 .status-progress   { background: #dbeafe; color: #1e40af; }
+.status-waitdeliver { background: #ede9fe; color: #5b21b6; }
 .status-waitpay    { background: #fef3c7; color: #92400e; }
 .status-done       { background: #d1fae5; color: #065f46; }
 .status-terminated { background: #fee2e2; color: #991b1b; }
@@ -806,6 +808,7 @@ body.sheet-open { overflow: hidden; }
           <option value="">ทุกสถานะ</option>
           <option value="pending">📌 รอดำเนินการ</option>
           <option value="progress">🔄 ระหว่างดำเนินการ</option>
+          <option value="waitdeliver">📦 รอส่งมอบงาน</option>
           <option value="waitpay">💰 รอเบิกจ่าย</option>
           <option value="done">✅ แล้วเสร็จ</option>
           <option value="terminated">⛔ บอกเลิกสัญญา</option>
@@ -991,6 +994,7 @@ const SYNC_COLUMNS = FIELDS.map(function (f) { return f.col; });
 const STATUS_LABELS = {
   pending:    "📌 รอดำเนินการ",
   progress:   "🔄 ระหว่างดำเนินการ",
+  waitdeliver:"📦 รอส่งมอบงาน",
   waitpay:    "💰 รอเบิกจ่าย",
   done:       "✅ แล้วเสร็จ",
   terminated: "⛔ บอกเลิกสัญญา"
@@ -1000,6 +1004,7 @@ const STATUS_LABELS = {
 const STATUS_DB_TEXT = {
   pending:    "รอดำเนินการ",
   progress:   "ระหว่างดำเนินการ",
+  waitdeliver:"รอส่งมอบงาน",
   waitpay:    "รอเบิกจ่าย",
   done:       "แล้วเสร็จ",
   terminated: "บอกเลิกสัญญา"
@@ -1017,6 +1022,9 @@ const STATUS_ALIASES = {
   "ongoing": "progress", "active": "progress", "working": "progress",
   "ระหว่างดำเนินการ": "progress", "อยู่ระหว่างดำเนินการ": "progress",
   "กำลังดำเนินงาน": "progress", "กำลังดำเนินการ": "progress", "ดำเนินการ": "progress",
+
+  // รอส่งมอบงาน
+  "waitdeliver": "waitdeliver", "รอส่งมอบ": "waitdeliver", "รอส่งมอบงาน": "waitdeliver",
 
   // รอเบิกจ่าย
   "waitpay": "waitpay", "wait_payment": "waitpay", "pending_payment": "waitpay",
