@@ -1181,11 +1181,12 @@ const CAN = {
   viewer: { create: false, update: false, delete: false }
 };
 
-// ตัวแปรบทบาท — ต้องกำหนดค่าตัวนี้ก่อนใช้งาน (เช่น "admin" หรือ "viewer")
-let currentRole = "viewer"; // ✅ ค่าเริ่มต้น, เปลี่ยนตามความเหมาะสม
+// ✅ กำหนดค่าเท่านั้น ไม่ต้องใส่ let/const เพราะมีประกาศไว้แล้ว
+currentRole = localStorage.getItem('approle') || 'viewer';
 
 /** เช็คสิทธิ์ตาม role ปัจจุบัน */
 const can = (action) => !!CAN[currentRole]?.[action];
+const isAdmin = () => currentRole === "admin";
 
 /** จัดการการแสดงผล UI ตามสิทธิ์ */
 function applyRoleUI() {
@@ -1402,7 +1403,6 @@ function updateSplashStatus(text) {
 // ==========================================================
 //   ฟังก์ชั่นโหลด / บันทึกข้อมูลในเครื่อง
 // ==========================================================
-let currentRole = localStorage.getItem('approle') || 'viewer';
 let projects = [];
 
 async function boot() {
