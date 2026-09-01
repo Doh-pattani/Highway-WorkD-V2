@@ -742,7 +742,7 @@ body.sheet-open { overflow: hidden; }
     <input type="password" id="pinInput" placeholder="รหัสผ่าน" autocomplete="current-password" inputmode="numeric">
     <button type="button" class="btn btn-primary" id="btnPinSubmit">เข้าสู่ระบบ</button>
     <div id="pinError" class="pin-error" role="alert" hidden>รหัสผ่านไม่ถูกต้อง ลองอีกครั้ง</div>
-    <div class="pin-hint">🛡️ <strong>ผู้ดูแล</strong> = เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud</div>
+    <div class="pin-hint">🛡️ <strong></strong> = เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud</div>
     <div class="pin-hint">👁️ <strong>ผู้ใช้ทั่วไป</strong> = ดูได้อย่างเดียว</div>
   </div>
 </div>
@@ -913,7 +913,7 @@ const TABLE_NAME = "construction_projects";
 
 // ==========================================================
 // 🔐 ระบบสิทธิ์ 2 ระดับ
-//   • ADMIN_PIN  = ผู้ดูแล: เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud ได้ทุกอย่าง
+//   • ADMIN_PIN  = : เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud ได้ทุกอย่าง
 //   • VIEWER_PIN = ผู้ใช้ทั่วไป: ดูได้อย่างเดียว ห้ามเพิ่ม/แก้ไข/ลบ
 // ⚠️ เปลี่ยน PIN ทั้ง 2 ค่าเป็นรหัสของทีมคุณก่อนนำไปใช้จริง!
 //   - ADMIN_PIN: ห้ามใช้ 1234 ในชีวิตจริง
@@ -921,7 +921,7 @@ const TABLE_NAME = "construction_projects";
 // ⚠️ รหัสเหล่านี้อยู่ฝั่งหน้าเว็บ คนที่เปิดดูโค้ดหน้าเว็บหาเจอได้
 //    การป้องกันข้อมูลจริงๆ ต้องตั้ง RLS + Policy ที่ฝั่งฐานข้อมูลเท่านั้น
 // ==========================================================
-const ADMIN_PIN  = "1234";   // 🔑 PIN สำหรับผู้ดูแล (เปลี่ยนก่อนใช้จริง!)
+const ADMIN_PIN  = "1234";   // 🔑 PIN สำหรับ (เปลี่ยนก่อนใช้จริง!)
 const VIEWER_PIN = "0000";   // 👁️ PIN สำหรับผู้ใช้ทั่วไป (เปลี่ยนก่อนใช้จริง!)
 const PIN_SESSION_KEY = "highway_workd_unlocked_until";
 const PIN_ROLE_KEY = "highway_workd_role";       // เก็บ role: "admin" หรือ "viewer"
@@ -1055,7 +1055,7 @@ function currentRole() {
   } catch (e) { return "viewer"; }
 }
 
-/** ตรวจว่าเป็นผู้ดูแลหรือไม่ */
+/** ตรวจว่าเป็นหรือไม่ */
 function isAdmin() {
   return currentRole() === "admin";
 }
@@ -1076,7 +1076,7 @@ function showPinGate() {
   
   // โหลด placeholder ตามสิทธิ์ที่เคยเข้าระบบล่าสุด
   var prev = currentRole();
-  input.placeholder = prev === "admin" ? "PIN ผู้ดูแล";
+  input.placeholder = prev === "admin" ? "PIN ผู้ดูแล" : "PIN ผู้ใช้ทั่วไป";
   window.setTimeout(function () { input.focus(); }, 50);
 }
 function showApp() {
