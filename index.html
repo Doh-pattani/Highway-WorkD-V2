@@ -1364,20 +1364,40 @@ function renderList() {
   visibleIndexes = [];
 
 // -------------------------------------------------------------
-// 📍 เพิ่มโค้ดจัดเรียงตาม "เลขที่สัญญา" ตรงนี้ (ก่อนคำนวณ countEl)
-// -------------------------------------------------------------
-visibleIndexes.sort(function(a, b) {
-  const contractA = projects[a].contract_no ? String(projects[a].contract_no).trim() : "";
-  const contractB = projects[b].contract_no ? String(projects[b].contract_no).trim() : "";
+  // 📍 จัดเรียงตาม "เลขที่สัญญา" (รองรับรูปแบบ ปน 40/2569)
+  // -------------------------------------------------------------
+  visibleIndexes.sort(function(a, b) {
+    const contractA = projects[a].contract_no ? String(projects[a].contract_no).trim() : "";
+    const contractB = projects[b].contract_no ? String(projects[b].contract_no).trim() : "";
+    
+    // ดันโครงการที่ "ยังไม่มีเลขที่สัญญา" ไปไว้ล่างสุด
+    if (!contractA && contractB) return 1;
+    if (contractA && !contractB) return -1;
+    if (!contractA && !contractB) return 0;
+    
+    // ฟังก์ชันดึงเลขรัน และ ปีพ.ศ. ออกจากรูปแบบ "XXX 40/2569"
+    const extractInfo = (str) => {
+      const match = str.match(/(\d+)\s*\/\s*(\d+)/);
+      return match ? { num: parseInt(match[1], 10), year: parseInt(match[2], 10) } : null;
+    };
 
-// ดันโครงการที่ "ยังไม่มีเลขที่สัญญา" ไปไว้ล่างสุด
-  if (!contractA && contractB) return 1;
-  if (contractA && !contractB) return -1;
+    const parsedA = extractInfo(contractA);
+    const parsedB = extractInfo(contractB);
 
-// เรียงตามตัวอักษรและตัวเลข (Natural Sort) 
-  return contractA.localeCompare(contractB, 'th', { numeric: true });
-});
-// -------------------------------------------------------------
+    if (parsedA && parsedB) {
+      // 1. เทียบปี พ.ศ. (เอาปีน้อย 2568 มาก่อน 2569)
+      // *ถ้าอยากให้ปีใหม่ล่าสุดขึ้นก่อน ให้แก้เป็น return parsedB.year - parsedA.year;
+      if (parsedA.year !== parsedB.year) {
+        return parsedA.year - parsedB.year;
+      }
+      // 2. ถ้าปีเดียวกัน ให้เทียบเลขรัน (เอาเลข 1 มาก่อน 2 และ 10)
+      return parsedA.num - parsedB.num;
+    }
+    
+    // กรณีพิมพ์รูปแบบอื่นมาที่ไม่ใช้ / ให้สลับไปใช้โหมดเดิม
+    return contractA.localeCompare(contractB, 'th', { numeric: true });
+  });
+  // -------------------------------------------------------------
 
   projects.forEach(function (p, i) {
     if (statusFilter && normalizeStatus(p.status) !== statusFilter) return;
