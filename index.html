@@ -1361,8 +1361,24 @@ function renderList() {
   const countEl = document.getElementById("projectCount");
   const term = document.getElementById("searchBox").value.trim().toLowerCase();
   const statusFilter = document.getElementById("filterStatus").value;
-
   visibleIndexes = [];
+
+// -------------------------------------------------------------
+// 📍 เพิ่มโค้ดจัดเรียงตาม "เลขที่สัญญา" ตรงนี้ (ก่อนคำนวณ countEl)
+// -------------------------------------------------------------
+visibleIndexes.sort(function(a, b) {
+  const contractA = projects[a].contract_no ? String(projects[a].contract_no).trim() : "";
+  const contractB = projects[b].contract_no ? String(projects[b].contract_no).trim() : "";
+
+// ดันโครงการที่ "ยังไม่มีเลขที่สัญญา" ไปไว้ล่างสุด
+  if (!contractA && contractB) return 1;
+  if (contractA && !contractB) return -1;
+
+// เรียงตามตัวอักษรและตัวเลข (Natural Sort) 
+  return contractA.localeCompare(contractB, 'th', { numeric: true });
+});
+// -------------------------------------------------------------
+
   projects.forEach(function (p, i) {
     if (statusFilter && normalizeStatus(p.status) !== statusFilter) return;
     if (term) {
