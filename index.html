@@ -1186,7 +1186,6 @@ currentRole = localStorage.getItem('approle') || 'viewer';
 
 /** เช็คสิทธิ์ตาม role ปัจจุบัน */
 const can = (action) => !!CAN[currentRole]?.[action];
-const isAdmin = () => currentRole === "admin";
 
 /** จัดการการแสดงผล UI ตามสิทธิ์ */
 function applyRoleUI() {
