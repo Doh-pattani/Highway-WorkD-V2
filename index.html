@@ -1195,16 +1195,32 @@ function applyRoleUI() {
 const FIELDS = ["name", "source", "year", "status", "contractor", "budget", "disbursed", "progress", "persons", "detail", "conract_no", "route_no", "section_name", "km_range"]; // ✅ ใส่ id ของ input ต่างๆ เช่น ["projName", "budget", ...]
 
 // ==========================================================
-// 🎨 ปรับหน้าจอตามสิทธิ์
+// 🔐 ระบบสิทธิ์ + ปรับหน้าจอตามสิทธิ์
 // ==========================================================
+const CAN = {
+  admin:  { create: true,  update: true,  delete: true  },
+  viewer: { create: false, update: false, delete: false }
+};
+
+// ตรวจสอบสิทธิ์
+const can = (action) => !!CAN[currentRole()]?.[action];
+const isAdmin = () => currentRole() === "admin";
+
+// รายการฟิลด์ในฟอร์ม
+const FIELDS = [
+  "f_name", "f_year", "f_source", "f_status", "f_contract_no",
+  "f_contractor", "f_route_no", "f_section_name", "f_km_range",
+  "f_progress", "f_budget", "f_disbursed", "f_detail", "f_persons"
+];
+
 function applyRoleUI() {
   const isA = isAdmin();
 
   // 1️⃣ ปุ่มในหน้าหลัก — ซ่อนถ้าไม่ใช่แอดมิน
-  const adminBtns = ["btnExport", "btnImport", "btnDownload", "btnUpload", "btnSheetEdit", "btnSheetDelete"];
+  const adminBtnIds = ["btnExport", "btnImport", "btnDownload", "btnUpload"];
   adminBtnIds.forEach(id => {
     const el = document.getElementById(id);
-    if (el) el.style.display = isA ? "" : "none";
+    if (el) el.hidden = !isA;
   });
 
   // 2️⃣ ปุ่มลอยเพิ่มโครงการ — ซ่อนจาก Viewer
@@ -1218,25 +1234,25 @@ function applyRoleUI() {
     if (el) el.hidden = !isA;
   });
 
-  // 4️⃣ จัดการปุ่ม/องค์ประกอบที่มี attribute data-admin-only ไว้ใน HTML
+  // 4️⃣ องค์ประกอบที่มี attribute data-admin-only
   document.querySelectorAll('[data-admin-only]').forEach(el => {
     el.hidden = !isA;
   });
 
   // 5️⃣ ฟอร์มเป็นอ่านอย่างเดียวสำหรับ Viewer
-    FIELDS.forEach(f => {
-    const el = document.getElementById(f.el); // ใช้ f.el เพราะ FIELDS เก็บข้อมูลเป็น Object
-    if (el) { 
-      el.disabled = !isA; 
-      el.readOnly = !isA; 
+  FIELDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.disabled = !isA;
+      el.readOnly = !isA;
     }
   });
 
-  // 6️⃣ อัพเดตป้ายแสดงสถานะสิทธิ์
+  // 6️⃣ ป้ายแสดงสถานะบทบาท
   const badge = document.getElementById('roleBadge');
   if (badge) {
     badge.textContent = isA ? '👤 ผู้ดูแล' : '👁 ผู้ใช้ทั่วไป (ดูอย่างเดียว)';
-    badge.className = 'roleBadge' + isA ? 'role-admin' : 'role-viewer');
+    badge.className = isA ? 'role-badge role-admin' : 'role-badge role-viewer';
   }
 }
 
@@ -1402,8 +1418,6 @@ function updateSplashStatus(text) {
 // ==========================================================
 //   ฟังก์ชั่นโหลด / บันทึกข้อมูลในเครื่อง
 // ==========================================================
-let projects = [];
-
 async function boot() {
   // 1) แสดง cache เดิมทันที (ถ้ามี) — ไม่ต้องรอเน็ต
   projects = loadCache();
