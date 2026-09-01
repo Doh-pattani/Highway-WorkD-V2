@@ -2333,31 +2333,32 @@ function populateCommitteeFromData(persons) {
 <script>
 // ===== ลงทะเบียน Service Worker + จัดการอัปเดต =====
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').then(reg => {
-    console.log('✅ Service Worker ลงทะเบียนสำเร็จ');
+  let refreshing = false;
 
-    // ตรวจจับ SW เวอร์ชันใหม่ทุก 60 วินาที
-    setInterval(() => reg.update(), 60000);
-
-    // เมื่อมี SW ใหม่รออยู่ → แจ้งผู้ใช้
-    reg.addEventListener('updatefound', () => {
-      const newWorker = reg.installing;
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // มีเวอร์ชันใหม่พร้อมใช้ → แสดงแจ้งเตือน
-          if (confirm('🔄 มีอัปเดตใหม่พร้อมใช้งาน\nต้องการรีเฟรชเพื่ออัปเดตเลยไหม?')) {
-            newWorker.postMessage({ type: 'skip-waiting' });// ส่งข้อความไปหา SW ตัวใหม่
-          }
-        }
-      });
-    });
-  }).catch(err => {
-    console.warn('⚠️ Service Worker ล้มเหลว:', err);
+  // ✅ guard กันรีโหลดวนไม่หยุด
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
   });
 
-  // เมื่อ SW ใหม่เข้าควบคุม → รีเฟรชอัตโนมัติ
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    window.location.reload();
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        reg.addEventListener('updatefound', () => {
+          const nw = reg.installing;
+          if (!nw) return;
+          nw.addEventListener('statechange', () => {
+            if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+              // มีเวอร์ชันใหม่รออยู่ → ให้ผู้ใช้ตัดสินใจ
+              if (confirm('มีเวอร์ชันใหม่ ต้องการอัปเดตตอนนี้หรือไม่?')) {
+                nw.postMessage({ type: 'skip-waiting' });
+              }
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('[SW] register ล้มเหลว:', err)); // ✅ FIX #5 เดิม
   });
 
   // ตรวจสอบสถานะออฟไลน์/ออนไลน์
