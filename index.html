@@ -2167,35 +2167,64 @@ function mergeCloudRows(data) {
 //   ฟังก์ชั่นซิงค์: ดึงข้อมูลจาก Cloud (ครบทุกคอลัมน์)
 // ==========================================================
 async function syncFromSupabase() {
-  if (!supabaseClient) {
-    showToast("⚠️ ยังไม่ได้เชื่อมต่อ Supabase", "error");
-    return;
-  }
-
+  if (!can('read')) { showToast("⛔ ไม่มีสิทธิ์ดึงข้อมูล", "error"); return; }
+  if (!supabaseClient) { showToast("⚠️ ยังไม่ได้เชื่อมต่อ Supabase", "error"); return; }
+  
   const btn = document.getElementById("btnDownload");
   const label = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = "⏳ กำลังดึงข้อมูล...";
-
+  btn.disabled = true; btn.textContent = "⏳ กำลังดึงข้อมูล...";
+  
   try {
-    const data = await fetchCloudRows();
+    const res = await supabaseClient.from(TABLE_NAME).select("*").order("created_at", { ascending: false, nullsFirst: false });
+    if (res.error) throw res.error;
+    const data = res.data || [];
+    if (data.length === 0) { showToast("ℹ️ ยังไม่มีข้อมูลใน Cloud", "info"); return; }
+    
+    // จัดเตรียมข้อมูลที่ได้จาก Cloud
+    const cloudProjects = data.map(row => {
+      const o = { cloud_id: row.id };
+      SYNC_COLUMNS.forEach(col => { o[col] = row[col] !== undefined ? row[col] : null; });
+      o.status = normalizeStatus(row.status);
+      o.progress = clampProgress(row.progress);
+      o.created_at = row.created_at || new Date().toISOString();
+      o.updated_at = row.updated_at || o.created_at;
+      return o;
+    });
 
-    if (data.length === 0) {
-      showToast("ℹ️ ยังไม่มีข้อมูลใน Cloud", "info");
-      return;
+    // 📍 ระบบจัดการข้อมูลซ้ำ (Smart Merge)
+    if (!can('create')) {
+      // 1. ถ้าเป็น Viewer ให้แทนที่ข้อมูลทั้งหมดด้วย Cloud 100%
+      projects = cloudProjects;
+      showToast(`✅ อัปเดตข้อมูลล่าสุดจาก Cloud สำเร็จ`, "success");
+    } else {
+      // 2. ถ้าเป็น Admin ใช้ Cloud เป็นหลัก แล้วดึงเฉพาะ Draft (💻) ที่ไม่ซ้ำมาต่อท้าย
+      const newProjects = [...cloudProjects];
+      let keptDrafts = 0;
+
+      projects.forEach(p => {
+        // หากไม่มี cloud_id ถือว่าเป็น Draft ในเครื่อง
+        if (!p.cloud_id) {
+          // เช็คว่า Draft ตัวนี้ไปซ้ำกับข้อมูล Cloud หรือไม่ (เช็คจากเลขสัญญาและชื่อ)
+          const isDuplicate = cloudProjects.some(cp => 
+            cp.name === p.name && cp.contract_no === p.contract_no
+          );
+          if (!isDuplicate) {
+            newProjects.push(p);
+            keptDrafts++;
+          }
+        }
+      });
+
+      projects = newProjects;
+      showToast(`✅ ดึงข้อมูลสำเร็จ (Cloud: ${cloudProjects.length}, Draft ส่วนตัว: ${keptDrafts})`, "success");
     }
 
-    const stat = mergeCloudRows(data);
-
-    saveToLocal();
+    saveToLocal(); 
     renderList();
-    showToast("✅ ดึงข้อมูลสำเร็จ: ใหม่ " + stat.added + " รายการ, อัปเดต " + stat.updated + " รายการ", "success");
-  } catch (e) {
-    console.error("❌ ดึงข้อมูลไม่สำเร็จ:", e);
-    showToast("❌ ดึงข้อมูลไม่สำเร็จ: " + (e && e.message ? e.message : "ไม่ทราบสาเหตุ"), "error");
-  } finally {
-    btn.disabled = false;
-    btn.textContent = label;
+  } catch (e) { 
+    showToast("❌ ดึงข้อมูลไม่สำเร็จ", "error"); 
+  } finally { 
+    btn.disabled = false; btn.textContent = label; 
   }
 }
 
