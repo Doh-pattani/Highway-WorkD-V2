@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#1B4965">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png" type="image/png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" sizes="180x180">
 
 <title>Highway WorkD - ระบบบริหารงานทางหลวงและโครงการก่อสร้าง</title>
 
@@ -19,7 +19,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- ✅ Supabase SDK v2 -->
+<!-- ✅ Supabase SDK v2 (จะสร้างตัวแปร global ชื่อ supabase) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
 :root {
@@ -31,6 +31,8 @@
   --text-muted: #6b7280;
   --border-color: #d1d5db;
   --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+
+  /* ===== Safe-area (รองรับ black-translucent / รอยบาก iPhone) ===== */
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
@@ -38,25 +40,99 @@
 }
 
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: "Sarabun", "Kanit", sans-serif; background: var(--bg-page); color: var(--text-main); line-height: 1.5; }
+body {
+  font-family: "Sarabun", "Kanit", sans-serif;
+  background: var(--bg-page);
+  color: var(--text-main);
+  line-height: 1.5;
+}
 
 /* ===== หน้าจอเริ่มต้น ===== */
-#splashScreen { position: fixed; inset: 0; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.4s ease; }
-#splashScreen .logo { font-size: 2.2rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 0.5rem; }
-#splashScreen .sub { margin-top: 0.5rem; color: var(--text-muted); font-size: 1rem; }
-#splashScreen .status { margin-top: 1rem; font-size: 0.9rem; color: var(--primary-light); }
+#splashScreen {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.4s ease;
+}
+#splashScreen .logo {
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#splashScreen .sub {
+  margin-top: 0.5rem;
+  color: var(--text-muted);
+  font-size: 1rem;
+}
+#splashScreen .status {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: var(--primary-light);
+}
 
 /* ===== เนื้อหาหลัก ===== */
 #mainContent { display: none; }
-.container { max-width: 1100px; margin: 0 auto; padding: 1rem; padding-top: calc(1rem + var(--sat)); padding-bottom: calc(1rem + var(--sab)); padding-left: calc(1rem + var(--sal)); padding-right: calc(1rem + var(--sar)); }
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+  /* กันเนื้อหาไม่ให้ถูกนาฬิกา/รอยบาก/แถบเลื่อนล่างทับ */
+  padding-top: calc(1rem + var(--sat));
+  padding-bottom: calc(1rem + var(--sab));
+  padding-left: calc(1rem + var(--sal));
+  padding-right: calc(1rem + var(--sar));
+}
+
 header { text-align: center; padding: 1rem 0; }
-header h1 { font-size: 1.4rem; color: var(--primary); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-.connection-status { display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px; font-size: 0.8rem; margin-top: 0.5rem; }
+header h1 {
+  font-size: 1.4rem;
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.connection-status {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+}
 .status-online { background: #d1fae5; color: #065f46; }
 .status-offline { background: #fee2e2; color: #b91c1c; }
-.card { background: var(--bg-card); border-radius: 0.75rem; box-shadow: var(--shadow-sm); padding: 1.25rem; margin-bottom: 1rem; }
-.btn { padding: 0.5rem 1rem; border-radius: 0.5rem; border: 1px solid transparent; background: #e5e7eb; color: var(--text-main); font-family: inherit; font-size: 0.95rem; cursor: pointer; transition: background 0.2s, opacity 0.2s; }
+
+.card {
+  background: var(--bg-card);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-sm);
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  background: #e5e7eb;
+  color: var(--text-main);
+  font-family: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
 .btn:hover:not(:disabled) { background: #d1d5db; }
+.btn:focus-visible { outline: 3px solid rgba(27,73,101,0.35); outline-offset: 2px; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background: var(--primary); color: #fff; }
 .btn-primary:hover:not(:disabled) { background: var(--primary-light); }
@@ -66,92 +142,361 @@ header h1 { font-size: 1.4rem; color: var(--primary); display: flex; align-items
 .btn-warning:hover:not(:disabled) { background: #b45309; }
 .btn-danger { background: #dc2626; color: #fff; }
 .btn-danger:hover:not(:disabled) { background: #b91c1c; }
+.btn-icon { padding: 0.25rem 0.5rem; font-size: 0.85rem; }
+
 .btn-group { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.75rem 0; }
 
-/* ===== ฟอร์ม ===== */
-.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem 1rem; margin-bottom: 0.75rem; }
+/* ===== ฟอร์ม (คลาสที่หายไปในไฟล์เดิม) ===== */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.75rem;
+}
 .form-row { margin-bottom: 0.75rem; }
 .form-grid .form-row { margin-bottom: 0; }
-label, .form-label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.95rem; }
-input, select, textarea { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: 0.375rem; font-family: inherit; font-size: 0.95rem; background: #fff; color: inherit; }
+label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.95rem; }
+input, select, textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.375rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  background: #fff;
+  color: inherit;
+}
 textarea { min-height: 80px; resize: vertical; }
-input:focus, select:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(27, 73, 101, 0.1); }
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(27, 73, 101, 0.1);
+}
 .field-hint { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem; }
+.field-error { font-size: 0.82rem; color: #b91c1c; margin-top: 0.2rem; }
+
+/* ===== ตาราง ===== */
+.table-wrap { overflow-x: auto; margin-top: 0.75rem; }
+table { width: 100%; border-collapse: collapse; }
+th, td {
+  padding: 0.6rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+td.wrap { white-space: normal; min-width: 200px; }
+th { background: #eff6ff; color: var(--primary); font-weight: 600; }
+td.num, th.num { text-align: right; }
+
+.progress-track {
+  display: inline-block;
+  width: 70px;
+  height: 7px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  vertical-align: middle;
+  margin-right: 0.4rem;
+}
+.progress-fill { display: block; height: 100%; background: var(--primary-light); }
 
 /* ===== มุมมองการ์ด ===== */
-.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; margin-top: 0.75rem; }
-.pcard { border: 1px solid var(--border-color); border-left: 5px solid var(--border-color); border-radius: 0.75rem; background: #fff; padding: 0; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow-sm); transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s; cursor: pointer; -webkit-tap-highlight-color: rgba(27,73,101,0.12); }
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+
+/* การ์ดทั้งใบกดได้ → เปิดแท็บรายละเอียด */
+.pcard {
+  border: 1px solid var(--border-color);
+  border-left: 5px solid var(--border-color);
+  border-radius: 0.75rem;
+  background: #fff;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(27,73,101,0.12);
+}
 .pcard:hover { box-shadow: 0 6px 18px rgba(0,0,0,0.12); transform: translateY(-2px); }
+.pcard:focus-visible { outline: 3px solid rgba(27,73,101,0.45); outline-offset: 2px; }
+.pcard:active { transform: translateY(0); }
 .pcard[data-status="pending"]    { border-left-color: #9ca3af; }
 .pcard[data-status="progress"]   { border-left-color: #2563eb; }
-.pcard[data-status="waitdeliver"]{ border-left-color: #8b5cf6; }
 .pcard[data-status="waitpay"]    { border-left-color: #d97706; }
 .pcard[data-status="done"]       { border-left-color: #059669; }
 .pcard[data-status="terminated"] { border-left-color: #dc2626; }
 
-.pcard-head { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: #fff; padding: 0.7rem 0.9rem; display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; }
+/* ===== แถบบน: เลขที่สัญญา (เด่นที่สุด) ===== */
+.pcard-head {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+  color: #fff;
+  padding: 0.7rem 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
 .pcard-head-main { min-width: 0; }
-.pcard-contract-label { font-size: 0.7rem; letter-spacing: 0.03em; text-transform: uppercase; opacity: 0.85; margin-bottom: 0.1rem; }
-.pcard-contract { font-family: "Kanit", sans-serif; font-size: 1.45rem; font-weight: 700; line-height: 1.2; }
+.pcard-contract-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin-bottom: 0.1rem;
+}
+.pcard-contract {
+  font-family: "Kanit", "Sarabun", sans-serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  word-break: break-word;
+  font-variant-numeric: tabular-nums;
+}
 .pcard-contract.is-empty { font-size: 1rem; font-weight: 500; opacity: 0.75; }
 .pcard-cloud { font-size: 1rem; flex-shrink: 0; }
-.pcard-body { padding: 0.85rem 0.9rem 0.95rem; display: flex; flex-direction: column; gap: 0.55rem; flex: 1; }
-.pcard-title { font-size: 1rem; font-weight: 600; color: var(--primary); line-height: 1.4; word-break: break-word; }
+
+/* ===== เนื้อการ์ด: ชื่อโครงการ / ปีงบ / สถานะ / ความก้าวหน้า ===== */
+.pcard-body {
+  padding: 0.85rem 0.9rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  flex: 1;
+}
+.pcard-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--primary);
+  line-height: 1.4;
+  word-break: break-word;
+}
 .pcard-meta { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
-.pcard-hint { font-size: 0.75rem; color: var(--text-muted); text-align: right; margin-top: auto; }
-.tag { display: inline-block; background: #eff6ff; color: #1e40af; border: 1px solid #dbeafe; border-radius: 0.375rem; padding: 0.1rem 0.45rem; font-size: 0.78rem; white-space: nowrap; }
+.pcard-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: right;
+  margin-top: auto;
+}
+
+.pcard-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.tag {
+  display: inline-block;
+  background: #eff6ff;
+  color: #1e40af;
+  border: 1px solid #dbeafe;
+  border-radius: 0.375rem;
+  padding: 0.1rem 0.45rem;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
 .tag-muted { background: #f3f4f6; color: #4b5563; border-color: #e5e7eb; }
-.pcard-progress-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.25rem; }
-.progress-track { display: block; width: 100%; height: 9px; background: #e5e7eb; border-radius: 999px; overflow: hidden; }
-.progress-fill { display: block; height: 100%; background: var(--primary-light); }
 
-/* ===== แท็บปีงบประมาณ ===== */
-.year-tabs { display: flex; gap: 8px; margin-bottom: 1rem; overflow-x: auto; padding-bottom: 4px; -ms-overflow-style: none; scrollbar-width: none; }
-.year-tabs::-webkit-scrollbar { display: none; }
-.year-tab { padding: 6px 16px; border-radius: 20px; background: #f3f4f6; color: var(--text-muted); border: 1px solid #e5e7eb; cursor: pointer; font-weight: 600; font-family: 'Kanit', sans-serif; font-size: 0.95rem; transition: all 0.2s ease; white-space: nowrap; }
-.year-tab:hover { background: #e5e7eb; }
-.year-tab.active { background: var(--primary); color: #ffffff; border-color: var(--primary); box-shadow: 0 4px 10px rgba(27, 73, 101, 0.25); }
+.pcard-progress { margin-top: 0.1rem; }
+.pcard-progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+.pcard-progress-label strong { color: var(--text-main); }
+.progress-track.wide { width: 100%; height: 9px; margin-right: 0; display: block; }
 
-/* ===== แท็บรายละเอียด (Sheet) ===== */
+/* ===== แท็บรายละเอียด (Sheet) — เลื่อนขึ้นจากด้านล่าง ===== */
 #detailSheet[hidden] { display: none; }
-#detailSheet { position: fixed; inset: 0; z-index: 9000; display: flex; align-items: flex-end; justify-content: center; }
-.sheet-backdrop { position: absolute; inset: 0; background: rgba(15, 23, 42, 0.5); opacity: 0; transition: opacity 0.28s ease; }
+#detailSheet {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
 #detailSheet.open .sheet-backdrop { opacity: 1; }
-.sheet-panel { position: relative; background: var(--bg-card); width: 100%; max-width: 720px; max-height: 90vh; border-radius: 1.1rem 1.1rem 0 0; box-shadow: 0 -8px 32px rgba(0,0,0,0.25); display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.3s ease; }
+
+.sheet-panel {
+  position: relative;
+  background: var(--bg-card);
+  width: 100%;
+  max-width: 720px;
+  max-height: 90vh;
+  border-radius: 1.1rem 1.1rem 0 0;
+  box-shadow: 0 -8px 32px rgba(0,0,0,0.25);
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
 #detailSheet.open .sheet-panel { transform: translateY(0); }
-.sheet-grip { width: 44px; height: 4px; background: var(--border-color); border-radius: 999px; margin: 0.55rem auto 0; flex-shrink: 0; }
-.sheet-head { padding: 0.6rem 1rem 0.75rem; border-bottom: 1px solid #e5e7eb; display: flex; align-items: flex-start; gap: 0.6rem; flex-shrink: 0; }
+
+.sheet-grip {
+  width: 44px;
+  height: 4px;
+  background: var(--border-color);
+  border-radius: 999px;
+  margin: 0.55rem auto 0;
+  flex-shrink: 0;
+}
+
+.sheet-head {
+  padding: 0.6rem 1rem 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  flex-shrink: 0;
+}
 .sheet-head-main { flex: 1; min-width: 0; }
 .sheet-contract-label { font-size: 0.72rem; color: var(--text-muted); }
-.sheet-contract { font-family: "Kanit", sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--primary); line-height: 1.25; }
-.sheet-title { font-size: 0.92rem; color: var(--text-main); margin-top: 0.2rem; }
-.sheet-close { flex-shrink: 0; background: #f3f4f6; border: none; border-radius: 999px; width: 34px; height: 34px; font-size: 1.05rem; cursor: pointer; }
-.sheet-body { padding: 0.9rem 1rem 1rem; overflow-y: auto; flex: 1; font-size: 0.9rem; }
-.sheet-foot { padding: 0.7rem 1rem; padding-bottom: calc(0.7rem + var(--sab)); border-top: 1px solid #e5e7eb; background: #f9fafb; display: flex; gap: 0.5rem; flex-shrink: 0; }
+.sheet-contract {
+  font-family: "Kanit", "Sarabun", sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.25;
+  word-break: break-word;
+  font-variant-numeric: tabular-nums;
+}
+.sheet-title { font-size: 0.92rem; color: var(--text-main); margin-top: 0.2rem; word-break: break-word; }
+.sheet-close {
+  flex-shrink: 0;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-main);
+  font-family: inherit;
+}
+.sheet-close:hover { background: #e5e7eb; }
+.sheet-close:focus-visible { outline: 3px solid rgba(27,73,101,0.35); outline-offset: 2px; }
+
+.sheet-body {
+  padding: 0.9rem 1rem 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.sheet-foot {
+  padding: 0.7rem 1rem;
+  padding-bottom: calc(0.7rem + var(--sab));
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
 .sheet-foot .btn { flex: 1; }
 .sheet-foot .btn-danger { flex: 0 0 auto; }
-.sheet-body dl.detail-list { display: grid; grid-template-columns: minmax(104px, 36%) 1fr; gap: 0.4rem 0.7rem; }
-.sheet-body dl.detail-list dt { color: var(--text-muted); }
-.sheet-body dl.detail-list dd { font-weight: 500; }
-.sheet-figures { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; background: #f9fafb; border-radius: 0.5rem; padding: 0.6rem 0.7rem; margin-bottom: 0.85rem; }
-.sheet-figures dt { font-size: 0.75rem; color: var(--text-muted); }
-.sheet-figures dd { font-size: 1rem; font-weight: 600; }
-.detail-block { margin-top: 0.85rem; }
-.block-label { color: var(--text-muted); display: block; margin-bottom: 0.25rem; font-size: 0.82rem; }
-.note-box { background: #f9fafb; border-radius: 0.4rem; padding: 0.5rem 0.6rem; white-space: pre-wrap; }
 
-/* ===== ตารางบุคคล ===== */
-.person-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-.person-table thead th { background: #f3f4f6; color: var(--text-muted); font-weight: 600; text-align: left; padding: 0.35rem 0.45rem; border-bottom: 2px solid #e5e7eb; }
-.person-table tbody td { padding: 0.32rem 0.45rem; border-bottom: 1px solid #f0f0f0; }
-.person-role { display: inline-block; background: #dbeafe; color: #1e40af; border-radius: 9999px; padding: 0.1rem 0.5rem; font-size: 0.75rem; font-weight: 500; }
+/* ตารางข้อมูลในแท็บ */
+.sheet-body dl.detail-list {
+  display: grid;
+  grid-template-columns: minmax(104px, 36%) 1fr;
+  gap: 0.4rem 0.7rem;
+}
+.sheet-body dl.detail-list dt { color: var(--text-muted); }
+.sheet-body dl.detail-list dd { word-break: break-word; font-weight: 500; }
+
+.sheet-figures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  background: #f9fafb;
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.7rem;
+  margin-bottom: 0.85rem;
+}
+.sheet-figures dt { font-size: 0.75rem; color: var(--text-muted); }
+.sheet-figures dd { font-size: 1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.sheet-figures dd small { font-weight: 400; color: var(--text-muted); font-size: 0.75rem; }
+
+.detail-block { margin-top: 0.85rem; }
+.detail-block > span.block-label {
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.82rem;
+}
+.note-box {
+  background: #f9fafb;
+  border-radius: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ===== ตารางคณะกรรมการตรวจรับพัสดุ (แบบ ver.1.0) ===== */
+.person-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.person-table thead th {
+  background: var(--surface);
+  color: var(--text-muted);
+  font-weight: 600;
+  text-align: left;
+  padding: 0.35rem 0.45rem;
+  border-bottom: 2px solid #e5e7eb;
+  white-space: nowrap;
+}
+.person-table thead th:first-child { width: 2.5rem; text-align: center; }
+.person-table tbody td {
+  padding: 0.32rem 0.45rem;
+  border-bottom: 1px solid #f0f0f0;
+  vertical-align: middle;
+}
+.person-table tbody td:first-child { text-align: center; color: var(--text-muted); }
+.person-table tbody tr:last-child td { border-bottom: none; }
+.person-role {
+  display: inline-block;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 9999px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+@media print {
+  .person-table thead th { background: #fff !important; }
+}
 
 body.sheet-open { overflow: hidden; }
+
 .empty { text-align: center; color: var(--text-muted); padding: 2rem; }
-.status-badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px; font-size: 0.8rem; font-weight: 500; }
+
+.status-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
 .status-pending    { background: #e5e7eb; color: #374151; }
 .status-progress   { background: #dbeafe; color: #1e40af; }
-.status-waitdeliver{ background: #ede9fe; color: #5b21b6; }
 .status-waitpay    { background: #fef3c7; color: #92400e; }
 .status-done       { background: #d1fae5; color: #065f46; }
 .status-terminated { background: #fee2e2; color: #991b1b; }
@@ -159,16 +504,36 @@ body.sheet-open { overflow: hidden; }
 .toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
 .toolbar input, .toolbar select { width: auto; min-width: 160px; flex: 1 1 160px; }
 
-.toast { position: fixed; bottom: calc(1rem + var(--sab)); left: 50%; transform: translateX(-50%) translateY(150px); background: #1f2937; color: #fff; padding: 0.75rem 1.25rem; border-radius: 0.5rem; z-index: 10000; transition: transform 0.3s ease; font-size: 0.9rem; max-width: 90vw; text-align: center; }
+.toast {
+  position: fixed;
+  bottom: calc(1rem + var(--sab));
+  left: 50%;
+  transform: translateX(-50%) translateY(150px);
+  background: #1f2937;
+  color: #fff;
+  padding: 0.75rem 1.25rem;
+  border-radius: 0.5rem;
+  z-index: 10000;
+  transition: transform 0.3s ease;
+  font-size: 0.9rem;
+  max-width: 90vw;
+  text-align: center;
+}
 .toast.show { transform: translateX(-50%) translateY(0); }
 .toast.success { background: #059669; }
 .toast.error { background: #dc2626; }
 .toast.info { background: #2563eb; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+.sr-only {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
 
 @media (max-width: 640px) {
   .form-grid { grid-template-columns: 1fr; }
   th, td { padding: 0.4rem 0.3rem; font-size: 0.85rem; }
+  .btn { padding: 0.4rem 0.75rem; font-size: 0.9rem; }
   #splashScreen .logo { font-size: 1.6rem; }
   .card-grid { grid-template-columns: 1fr; }
   .pcard-contract { font-size: 1.3rem; }
@@ -178,37 +543,192 @@ body.sheet-open { overflow: hidden; }
 }
 
 /* ===== หน้าล็อกอิน (รหัสผ่านทีม) ===== */
-#pinGate { position: fixed; inset: 0; background: var(--bg-page); display: none; align-items: center; justify-content: center; z-index: 8000; padding: 1.25rem; }
+#pinGate {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-page);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 8000;
+  padding: calc(1.25rem + var(--sat)) calc(1.25rem + var(--sar)) calc(1.25rem + var(--sab)) calc(1.25rem + var(--sal));
+}
 #pinGate.show { display: flex; }
-.pin-box { background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 0.9rem; box-shadow: var(--shadow-sm); padding: 2rem 1.75rem; width: 100%; max-width: 360px; text-align: center; }
+.pin-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 0.9rem;
+  box-shadow: var(--shadow-sm);
+  padding: 2rem 1.75rem;
+  width: 100%;
+  max-width: 360px;
+  text-align: center;
+}
 .pin-box .pin-logo { font-size: 2rem; }
-.pin-box h2 { font-family: "Kanit", sans-serif; font-size: 1.05rem; color: var(--primary); margin: 0.6rem 0 0.3rem; }
+.pin-box h2 {
+  font-family: "Kanit", sans-serif;
+  font-size: 1.05rem;
+  color: var(--primary);
+  margin: 0.6rem 0 0.3rem;
+}
 .pin-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.1rem; }
-.pin-box input { width: 100%; padding: 0.7rem 0.75rem; border: 1px solid var(--border-color); border-radius: 0.5rem; font-family: inherit; font-size: 1rem; text-align: center; letter-spacing: 0.15rem; margin-bottom: 0.75rem; }
+.pin-box input {
+  width: 100%;
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 0.5rem;
+  font-family: inherit;
+  font-size: 1rem;
+  text-align: center;
+  letter-spacing: 0.15rem;
+  margin-bottom: 0.75rem;
+}
+.pin-box input:focus-visible {
+  outline: 3px solid rgba(27,73,101,0.35);
+  outline-offset: 2px;
+  border-color: var(--primary-light);
+}
 .pin-box .btn { width: 100%; }
-.pin-error { color: #b91c1c; font-size: 0.82rem; margin-top: 0.7rem; }
+.pin-error {
+  color: #b91c1c;
+  font-size: 0.82rem;
+  margin-top: 0.7rem;
+}
 .pin-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.9rem; }
+.pin-hint-warn { color: #b91c1c; font-weight: 600; }
+.pin-role-select {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 0.75rem;
+  font-size: 0.85rem;
+}
+.pin-role-select label { cursor: pointer; }
+.pin-role-select input[type="radio"] { margin-right: 0.3rem; accent-color: var(--primary); }
 
-/* ป้ายบอก role */
-.role-badge { font-size: 0.7rem; padding: 0.2rem 0.55rem; border-radius: 0.5rem; font-weight: 600; vertical-align: middle; margin-left: 0.4rem; }
+/* ป้ายบอก role บนหัวหน้าหลัก */
+.role-badge {
+  font-size: 0.7rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  vertical-align: middle;
+  margin-left: 0.4rem;
+}
 .role-admin  { background: #dbeafe; color: #1e40af; }
 .role-viewer { background: #fef3c7; color: #92400e; }
 
-/* ===== FAB ===== */
-.fab { position: fixed; bottom: calc(1.5rem + var(--sab)); right: calc(1.5rem + var(--sar)); width: 56px; height: 56px; border-radius: 50%; background: #1e3a5f; color: #fff; border: none; font-size: 1.75rem; line-height: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.25); z-index: 1000; transition: transform 0.2s, box-shadow 0.2s; }
-.fab:hover { transform: scale(1.1); }
+@media print {
+  #pinGate { display: none !important; }
+  .btn-group, .toolbar, #formCard, .toast, #detailSheet, .pcard-hint, .fab, .safe-top-bar { display: none !important; }
+  .container { padding: 1rem !important; }
+  .card-grid { grid-template-columns: 1fr 1fr; }
+  .pcard { break-inside: avoid; box-shadow: none; }
+}
+
+/* ===== FAB (Floating Action Button) ===== */
+.fab {
+  position: fixed;
+  bottom: calc(1.5rem + var(--sab));
+  right: calc(1.5rem + var(--sar));
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #1e3a5f;
+  color: #fff;
+  border: none;
+  font-size: 1.75rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  z-index: 1000;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
+.fab:active {
+  transform: scale(0.95);
+}
 .fab.fab-hidden { display: none !important; }
 
-/* แถบสีเข้มรองหลังนาฬิกา */
-.safe-top-bar { position: fixed; top: 0; left: 0; right: 0; height: var(--sat); background: var(--primary); z-index: 10000; pointer-events: none; }
+/* ===== แถบสีเข้มรองหลังนาฬิกา/แบต (เพราะ black-translucent ทำให้ตัวอักษรเป็นสีขาว) ===== */
+.safe-top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--sat);
+  background: var(--primary);
+  z-index: 10000;
+  pointer-events: none;
+}
 
-/* Dynamic Committee Rows */
-.committee-box { border: 1px solid #d1d5db; border-radius: 0.5rem; padding: 0.75rem; background: #f9fafb; }
-.committee-row { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; }
-.committee-row input[type="text"] { flex: 1; min-width: 0; padding: 0.4rem 0.6rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.9rem; background: #fff; }
-.committee-row select { max-width: 160px; flex: 0 0 auto; min-width: 120px; padding: 0.4rem 0.6rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.9rem; background: #fff; }
-.committee-remove-btn { background: none; border: none; color: #dc2626; font-size: 1.2rem; cursor: pointer; padding: 0.2rem 0.4rem; line-height: 1; border-radius: 0.25rem; flex-shrink: 0; }
-.committee-add-btn { display: inline-block; margin-top: 0.25rem; padding: 0.35rem 0.8rem; background: #e5e7eb; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 0.85rem; cursor: pointer; color: #374151; }
+/* ===== Dynamic Committee Rows ===== */
+.committee-box {
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+}
+.committee-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+.committee-row input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  background: #fff;
+}
+.committee-row select {
+  max-width: 160px;
+  flex: 0 0 auto;
+  min-width: 120px;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.9rem;
+  background: #fff;
+}
+.committee-remove-btn {
+  background: none;
+  border: none;
+  color: #dc2626;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+  line-height: 1;
+  border-radius: 0.25rem;
+  flex-shrink: 0;
+}
+.committee-remove-btn:hover {
+  background: #fee2e2;
+}
+.committee-add-btn {
+  display: inline-block;
+  margin-top: 0.25rem;
+  padding: 0.35rem 0.8rem;
+  background: #e5e7eb;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: #374151;
+}
+.committee-add-btn:hover {
+  background: #d1d5db;
+}
 </style>
 </head>
 <body>
@@ -231,8 +751,6 @@ body.sheet-open { overflow: hidden; }
     <input type="password" id="pinInput" placeholder="รหัสผ่าน" autocomplete="current-password" inputmode="numeric">
     <button type="button" class="btn btn-primary" id="btnPinSubmit">เข้าสู่ระบบ</button>
     <div id="pinError" class="pin-error" role="alert" hidden>รหัสผ่านไม่ถูกต้อง ลองอีกครั้ง</div>
-    <div class="pin-hint">🛡️ <strong>ผู้ดูแล</strong> = เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud</div>
-    <div class="pin-hint">👁️ <strong>ผู้ใช้ทั่วไป</strong> = ดูได้อย่างเดียว</div>
   </div>
 </div>
 
@@ -262,7 +780,6 @@ body.sheet-open { overflow: hidden; }
           <option value="">ทุกสถานะ</option>
           <option value="pending">📌 รอดำเนินการ</option>
           <option value="progress">🔄 ระหว่างดำเนินการ</option>
-          <option value="waitdeliver">📦 รอส่งมอบงาน</option>
           <option value="waitpay">💰 รอเบิกจ่าย</option>
           <option value="done">✅ แล้วเสร็จ</option>
           <option value="terminated">⛔ บอกเลิกสัญญา</option>
@@ -294,7 +811,6 @@ body.sheet-open { overflow: hidden; }
             <select id="f_status">
               <option value="pending">📌 รอดำเนินการ</option>
               <option value="progress">🔄 ระหว่างดำเนินการ</option>
-              <option value="waitdeliver">📦 รอส่งมอบงาน</option>
               <option value="waitpay">💰 รอเบิกจ่าย</option>
               <option value="done">✅ แล้วเสร็จ</option>
               <option value="terminated">⛔ บอกเลิกสัญญา</option>
@@ -338,7 +854,7 @@ body.sheet-open { overflow: hidden; }
           <textarea id="f_detail" placeholder="บันทึกรายละเอียด..."></textarea>
         </div>
         <div class="form-row">
-          <div class="form-label">👥 คณะกรรมการตรวจรับพัสดุ / ผู้ควบคุมงาน</div>
+          <label>👥 คณะกรรมการตรวจรับพัสดุ / ผู้ควบคุมงาน</label>
           <div class="committee-box" id="committeeBox">
             <div id="committeeRows"></div>
             <button type="button" class="committee-add-btn" id="btnAddCommitteeRow">+ เพิ่มรายชื่อ</button>
@@ -354,11 +870,7 @@ body.sheet-open { overflow: hidden; }
 
     <!-- === ตารางแสดงรายการ === -->
     <div class="card">
-      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.5rem;">
-        <h3 style="margin: 0;">รายการโครงการ <span id="projectCount" style="font-size:0.85rem;color:var(--text-muted);font-weight:normal;"></span></h3>
-      </div>
-      <!-- 📍 จุดแสดงแท็บปีงบประมาณ -->
-      <div id="yearTabsContainer" class="year-tabs"></div>
+      <h3>รายการโครงการ <span id="projectCount" style="font-size:0.85rem;color:var(--text-muted);font-weight:normal;"></span></h3>
       <div id="projectList"></div>
     </div>
   </div>
@@ -395,6 +907,9 @@ body.sheet-open { overflow: hidden; }
 "use strict";
 // ==========================================================
 // ⚙ ตั้งค่า Supabase
+// ⚠ ใช้ชื่อตัวแปร supabaseClient เพื่อไม่ให้ชนกับ global ชื่อ supabase จาก SDK
+// ⚠ anon key เปิดเผยได้ตามปกติ แต่ "ต้อง" เปิด RLS + Policy ที่ตาราง
+//    construction_projects ไม่เช่นนั้นใครก็แก้/ลบข้อมูลทั้งตารางได้
 // ==========================================================
 const SUPABASE_URL = "https://xsitjazwsaprzcwnksyu.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzaXRqYXp3c2Fwcnpjd25rc3l1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NTc1NjMsImV4cCI6MjEwMjUzMzU2M30.XenCi59dbIR1aS0udfCOdu6nxJt6eWzTvoRDsLkZ2A8";
@@ -403,55 +918,25 @@ const PENDING_DELETE_KEY = "highway_workd_pending_deletes";
 const TABLE_NAME = "construction_projects";
 
 // ==========================================================
-// 🔐 ระบบสิทธิ์ (Role-Based Access)
+// 🔐 ระบบสิทธิ์ 2 ระดับ
+//   • ADMIN_PIN  = ผู้ดูแล: เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud ได้ทุกอย่าง
+//   • VIEWER_PIN = ผู้ใช้ทั่วไป: ดูได้อย่างเดียว ห้ามเพิ่ม/แก้ไข/ลบ
+// ⚠️ เปลี่ยน PIN ทั้ง 2 ค่าเป็นรหัสของทีมคุณก่อนนำไปใช้จริง!
+//   - ADMIN_PIN: ห้ามใช้ 1234 ในชีวิตจริง
+//   - VIEWER_PIN: ห้ามใช้ 0000 ในชีวิตจริง
+// ⚠️ รหัสเหล่านี้อยู่ฝั่งหน้าเว็บ คนที่เปิดดูโค้ดหน้าเว็บหาเจอได้
+//    การป้องกันข้อมูลจริงๆ ต้องตั้ง RLS + Policy ที่ฝั่งฐานข้อมูลเท่านั้น
 // ==========================================================
-const ADMIN_PIN  = "1234";   
-const VIEWER_PIN = "0000";   
+const ADMIN_PIN  = "1234";   // 🔑 PIN สำหรับผู้ดูแล (เปลี่ยนก่อนใช้จริง!)
+const VIEWER_PIN = "0000";   // 👁️ PIN สำหรับผู้ใช้ทั่วไป (เปลี่ยนก่อนใช้จริง!)
 const PIN_SESSION_KEY = "highway_workd_unlocked_until";
-const PIN_ROLE_KEY = "highway_workd_role";       
-const PIN_SESSION_HOURS = 12;   
-
-const CAN = {
-  admin:  { create: true,  update: true,  delete: true  },
-  viewer: { create: false, update: false, delete: false }
-};
-
-function currentRole() {
-  try { return localStorage.getItem(PIN_ROLE_KEY) || "viewer"; } 
-  catch (e) { return "viewer"; }
-}
-const can = (action) => !!CAN[currentRole()]?.[action];
-
-// Alias เพื่อความเข้ากันได้กับโค้ดเดิม
-function isAdmin() { return can('create'); } 
-
-function applyRoleUI() {
-  const isA = can('create');
-  const adminBtns = ["btnExport", "btnImport", "btnDownload", "btnUpload", "btnSheetEdit", "btnSheetDelete"];
-  adminBtns.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.style.display = isA ? "" : "none";
-  });
-
-  const fab = document.getElementById("fabAdd");
-  if (fab) fab.classList.toggle("fab-hidden", !isA);
-
-  document.querySelectorAll('[data-admin-only]').forEach(el => { el.hidden = !isA; });
-
-  FIELDS.forEach(f => {
-    const el = document.getElementById(f.el);
-    if (el) { el.disabled = !isA; el.readOnly = !isA; }
-  });
-
-  const badge = document.getElementById('roleBadge');
-  if (badge) {
-    badge.textContent = isA ? '🛡️ ผู้ดูแล' : '👁️ ผู้ใช้ทั่วไป';
-    badge.className = 'role-badge ' + (isA ? 'role-admin' : 'role-viewer');
-  }
-}
+const PIN_ROLE_KEY = "highway_workd_role";       // เก็บ role: "admin" หรือ "viewer"
+const PIN_SESSION_HOURS = 12;   // เข้ารหัสครั้งหนึ่ง จำไว้กี่ชั่วโมง
 
 // ==========================================================
-// ============ ผังฟิลด์และตัวแปร ============
+// ============ ผังฟิลด์: id ในฟอร์ม  ↔  คอลัมน์ใน Supabase ============
+// แก้ไขบั๊กหลัก: โค้ดเดิมเรียก projectName / routeName / projectStatus / projectNote
+// ซึ่งไม่มีอยู่ใน HTML ทำให้ฟอร์มพังทั้งหมด
 // ==========================================================
 const FIELDS = [
   { el: "f_name",         col: "name",         type: "text" },
@@ -469,46 +954,64 @@ const FIELDS = [
   { el: "f_detail",       col: "detail",       type: "text" },
   { el: "f_persons",      col: "persons",      type: "json" }
 ];
+// คอลัมน์ที่ซิงค์กับ Cloud (ไม่รวม id / created_at ที่ฐานข้อมูลจัดการเอง)
 const SYNC_COLUMNS = FIELDS.map(function (f) { return f.col; });
 
 const STATUS_LABELS = {
   pending:    "📌 รอดำเนินการ",
   progress:   "🔄 ระหว่างดำเนินการ",
-  waitdeliver:"📦 รอส่งมอบงาน",
   waitpay:    "💰 รอเบิกจ่าย",
   done:       "✅ แล้วเสร็จ",
   terminated: "⛔ บอกเลิกสัญญา"
 };
 
+// คำที่เก็บจริงในฐานข้อมูล (ส่งข้อมูลขึ้น Cloud จะเขียนค่าเหล่านี้ เพื่อให้อ่านรู้จากหน้าเว็บ Supabase ได้)
 const STATUS_DB_TEXT = {
   pending:    "รอดำเนินการ",
   progress:   "ระหว่างดำเนินการ",
-  waitdeliver:"รอส่งมอบงาน",
   waitpay:    "รอเบิกจ่าย",
   done:       "แล้วเสร็จ",
   terminated: "บอกเลิกสัญญา"
 };
-
 function statusToDbText(v) { return STATUS_DB_TEXT[normalizeStatus(v)]; }
-
+// รองรับค่าที่อาจถูกบันทึกไว้ต่างรูปแบบบน Cloud
 const STATUS_ALIASES = {
-  "pending": "pending", "draft": "pending", "new": "pending", "waiting": "pending", "รอดำเนินการ": "pending", "รอเริ่ม": "pending", "ยังไม่เริ่ม": "pending", "ร่าง": "pending", "แบบร่าง": "pending",
-  "progress": "progress", "in_progress": "progress", "inprogress": "progress", "ongoing": "progress", "active": "progress", "working": "progress", "ระหว่างดำเนินการ": "progress", "อยู่ระหว่างดำเนินการ": "progress", "กำลังดำเนินงาน": "progress", "กำลังดำเนินการ": "progress", "ดำเนินการ": "progress",
-  "waitdeliver": "waitdeliver", "รอส่งมอบ": "waitdeliver", "รอส่งมอบงาน": "waitdeliver",
-  "waitpay": "waitpay", "wait_payment": "waitpay", "pending_payment": "waitpay", "รอเบิกจ่าย": "waitpay", "รอเบิกเงิน": "waitpay", "รอการเบิกจ่าย": "waitpay", "เสร็จงานรอเบิกจ่าย": "waitpay",
-  "done": "done", "complete": "done", "completed": "done", "finished": "done", "แล้วเสร็จ": "done", "เสร็จสิ้น": "done", "เสร็จ": "done", "สิ้นสุดสัญญา": "done", "เบิกจ่ายครบ": "done",
-  "terminated": "terminated", "cancelled": "terminated", "canceled": "terminated", "บอกเลิกสัญญา": "terminated", "ยกเลิกสัญญา": "terminated", "ยกเลิก": "terminated", "ยกเลิกการจ้าง": "terminated"
+  // รอดำเนินการ (เดิมใช้คำว่า "ร่าง")
+  "pending": "pending", "draft": "pending", "new": "pending", "waiting": "pending",
+  "รอดำเนินการ": "pending", "รอเริ่ม": "pending",
+  "ยังไม่เริ่ม": "pending", "ร่าง": "pending", "แบบร่าง": "pending",
+
+  // ระหว่างดำเนินการ
+  "progress": "progress", "in_progress": "progress", "inprogress": "progress",
+  "ongoing": "progress", "active": "progress", "working": "progress",
+  "ระหว่างดำเนินการ": "progress", "อยู่ระหว่างดำเนินการ": "progress",
+  "กำลังดำเนินงาน": "progress", "กำลังดำเนินการ": "progress", "ดำเนินการ": "progress",
+
+  // รอเบิกจ่าย
+  "waitpay": "waitpay", "wait_payment": "waitpay", "pending_payment": "waitpay",
+  "รอเบิกจ่าย": "waitpay", "รอเบิกเงิน": "waitpay", "รอการเบิกจ่าย": "waitpay",
+  "เสร็จงานรอเบิกจ่าย": "waitpay",
+
+  // แล้วเสร็จ
+  "done": "done", "complete": "done", "completed": "done", "finished": "done",
+  "แล้วเสร็จ": "done", "เสร็จสิ้น": "done", "เสร็จ": "done",
+  "สิ้นสุดสัญญา": "done", "เบิกจ่ายครบ": "done",
+
+  // บอกเลิกสัญญา
+  "terminated": "terminated", "cancelled": "terminated", "canceled": "terminated",
+  "บอกเลิกสัญญา": "terminated", "ยกเลิกสัญญา": "terminated",
+  "ยกเลิก": "terminated", "ยกเลิกการจ้าง": "terminated"
 };
 
+// ============ ตัวแปรกลาง ============
 let supabaseClient = null;
 let projects = [];
-let pendingDeletes = [];
+let pendingDeletes = [];   // cloud_id ที่ลบในเครื่องแล้ว รอลบบน Cloud
 let isOnline = false;
-let visibleIndexes = [];
-let activeDetailIndex = -1;
-let activeDetailKey = null;
-let sheetHistoryPushed = false;
-let activeYearFilter = 'ทั้งหมด'; // แท็บปี
+let visibleIndexes = [];   // map แถวที่แสดง -> index จริงใน projects
+let activeDetailIndex = -1;      // index โครงการที่กำลังเปิดแท็บรายละเอียด
+let activeDetailKey = null;      // key ของโครงการนั้น (ทนต่อการเรียงลำดับใหม่)
+let sheetHistoryPushed = false;  // เพิ่ม history entry ไว้หรือยัง (ใช้กับปุ่มย้อนกลับ)
 
 // ==========================================================
 // เริ่มต้นแอป
@@ -521,12 +1024,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
   updateSplashStatus("กำลังเชื่อมต่อ Supabase...");
   initSupabase()
+    .then(function () {
+      // ดึงข้อมูลจาก Cloud อัตโนมัติ — ทุกสิทธิ์ (รวม Viewer)
+      updateSplashStatus("กำลังดึงข้อมูลจาก Cloud...");
+      return autoPullFromCloud();
+    })
     .catch(function (e) { console.warn("⚠️ เชื่อมต่อ Supabase ไม่สำเร็จ:", e && e.message); })
     .finally(function () {
       updateSplashStatus("กำลังเตรียมใช้งาน...");
       hideSplash();
     });
 });
+
+/**
+ * ดึงข้อมูลจาก Cloud อัตโนมัติตอนเปิดแอพ (อ่านอย่างเดียว ไม่ต้องมีสิทธิ์ผู้ดูแล)
+ * เงียบ — ไม่ขึ้น toast รบกวนผู้ใช้
+ */
+async function autoPullFromCloud() {
+  if (!supabaseClient || !isOnline) return;
+  try {
+    const rows = await fetchCloudRows();
+    if (!rows || rows.length === 0) return;
+    const stat = mergeCloudRows(rows);
+    saveToLocal();
+    renderList();
+    console.log("☁️ ดึงข้อมูลอัตโนมัติ: ใหม่ " + stat.added + ", อัปเดต " + stat.updated);
+  } catch (e) {
+    console.warn("⚠️ ดึงข้อมูลอัตโนมัติไม่สำเร็จ:", e && e.message);
+  }
+}
 
 function hideSplash() {
   const splash = document.getElementById("splashScreen");
@@ -538,6 +1064,10 @@ function hideSplash() {
   }, 400);
 }
 
+// ==========================================================
+// ระบบล็อกหน้าจอด้วยรหัสผ่านทีม
+// เป็นเพียงการกันคนเปิดหน้าจอเล่น ไม่ใช่การรักษาความปลอดภัยของข้อมูล
+// ==========================================================
 function isUnlocked() {
   try {
     const until = parseInt(localStorage.getItem(PIN_SESSION_KEY) || "0", 10);
@@ -547,11 +1077,23 @@ function isUnlocked() {
   } catch (e) { return false; }
 }
 
+/** คืน role ปัจจุบัน: "admin" หรือ "viewer" (ค่าเริ่มต้น viewer) */
+function currentRole() {
+  try {
+    return localStorage.getItem(PIN_ROLE_KEY) || "viewer";
+  } catch (e) { return "viewer"; }
+}
+
+/** ตรวจว่าเป็นผู้ดูแลหรือไม่ */
+function isAdmin() {
+  return currentRole() === "admin";
+}
+
 function markUnlocked(role) {
   try {
     localStorage.setItem(PIN_SESSION_KEY, String(Date.now() + PIN_SESSION_HOURS * 3600 * 1000));
     localStorage.setItem(PIN_ROLE_KEY, role);
-  } catch (e) { }
+  } catch (e) { /* โหมดส่วนตัวอาจเก็บค่าไม่ได้ */ }
 }
 
 function showPinGate() {
@@ -560,7 +1102,7 @@ function showPinGate() {
   gate.classList.add("show");
   const input = document.getElementById("pinInput");
   input.value = "";
-  input.placeholder = "รหัสผ่าน"; // ✅ ใช้คำว่า รหัสผ่าน เสมอ
+  input.placeholder = "รหัสผ่าน";
   window.setTimeout(function () { input.focus(); }, 50);
 }
 
@@ -569,6 +1111,32 @@ function showApp() {
   document.getElementById("mainContent").style.display = "block";
   applyRoleUI();
   renderList();
+}
+
+/** ซ่อน/แสดงปุ่มตามสิทธิ์ (viewer = ซ่อนปุ่ม admin-only) */
+function applyRoleUI() {
+  var isA = isAdmin();
+  // ปุ่มที่จำกัดเฉพาะผู้ดูแล (ปุ่ม ดึงข้อมูลจาก Cloud เปิดให้ Viewer ใช้ได้ เพราะเป็นการอ่านข้อมูล)
+  var adminBtns = ["btnExport", "btnImport", "btnUpload"];
+  // FAB ปุ่มลอยเพิ่มโครงการ — ซ่อนจาก Viewer
+  var fab = document.getElementById("fabAdd");
+  if (fab) fab.classList.toggle("fab-hidden", !isA);
+  adminBtns.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = isA ? "" : "none";
+  });
+  // ปุ่มใน detail sheet (แก้ไข / ลบ)
+  var sheetBtns = ["btnSheetEdit", "btnSheetDelete"];
+  sheetBtns.forEach(function (id) {
+    var el = document.getElementById(id);
+    if (el) el.style.display = isA ? "" : "none";
+  });
+  // แสดงบั้นร์บอก role
+  var badge = document.getElementById("roleBadge");
+  if (badge) {
+    badge.textContent = isA ? "🛡️ ผู้ดูแล" : "👁️ ผู้ใช้ทั่วไป";
+    badge.className = "role-badge " + (isA ? "role-admin" : "role-viewer");
+  }
 }
 
 function checkPin() {
@@ -595,45 +1163,48 @@ function checkPin() {
 }
 
 function lockApp() {
-  try { localStorage.removeItem(PIN_SESSION_KEY); localStorage.removeItem(PIN_ROLE_KEY); } catch (e) {}
+  try { localStorage.removeItem(PIN_SESSION_KEY); localStorage.removeItem(PIN_ROLE_KEY); } catch (e) { /* ข้าม */ }
   closeDetailSheet({ fromHistory: true });
   hideForm();
   document.getElementById("pinError").hidden = true;
   showPinGate();
 }
 
+// ============ ผูก event ทั้งหมด (ไม่ใช้ inline onclick) ============
 function bindUI() {
   document.getElementById("fabAdd").addEventListener("click", showAddForm);
-  document.getElementById("btnAddCommitteeRow").addEventListener("click", addCommitteeRow);
+  document.getElementById("btnAddCommitteeRow").addEventListener("click", function() { addCommitteeRow(); });
   document.getElementById("btnExport").addEventListener("click", exportData);
   document.getElementById("btnImport").addEventListener("click", importData);
   document.getElementById("btnDownload").addEventListener("click", syncFromSupabase);
   document.getElementById("btnUpload").addEventListener("click", syncToSupabase);
   document.getElementById("btnLock").addEventListener("click", lockApp);
+
+  // หน้าล็อกอิน
   document.getElementById("btnPinSubmit").addEventListener("click", checkPin);
-  
   document.getElementById("pinInput").addEventListener("keydown", function (ev) {
     if (ev.key === "Enter") { ev.preventDefault(); checkPin(); }
   });
   document.getElementById("pinInput").addEventListener("input", function () {
     document.getElementById("pinError").hidden = true;
   });
-  
   document.getElementById("btnCancelForm").addEventListener("click", hideForm);
   document.getElementById("projectForm").addEventListener("submit", saveProject);
   document.getElementById("searchBox").addEventListener("input", renderList);
   document.getElementById("filterStatus").addEventListener("change", renderList);
 
+  // แตะการ์ดทั้งใบ = เปิดแท็บรายละเอียด (event delegation)
   const listEl = document.getElementById("projectList");
   listEl.addEventListener("click", function (ev) {
     const card = ev.target.closest(".pcard");
     if (!card) return;
     const idx = parseInt(card.getAttribute("data-index"), 10);
-    if (!Number.isNaN(idx)) openDetailSheet(idx);
+    if (Number.isNaN(idx)) return;
+    openDetailSheet(idx);
   });
-  
+  // รองรับคีย์บอร์ด: Enter / Space บนการ์ด
   listEl.addEventListener("keydown", function (ev) {
-    if (ev.key !== "Enter" && ev.key !== " ") return;
+    if (ev.key !== "Enter" && ev.key !== " " && ev.key !== "Spacebar") return;
     const card = ev.target.closest(".pcard");
     if (!card) return;
     ev.preventDefault();
@@ -641,6 +1212,7 @@ function bindUI() {
     if (!Number.isNaN(idx)) openDetailSheet(idx);
   });
 
+  // ===== ปุ่มต่าง ๆ ในแท็บรายละเอียด =====
   document.getElementById("btnSheetClose").addEventListener("click", function () { closeDetailSheet(); });
   document.getElementById("detailSheet").addEventListener("click", function (ev) {
     if (ev.target.getAttribute("data-sheet-close") === "1") closeDetailSheet();
@@ -653,40 +1225,65 @@ function bindUI() {
   document.getElementById("btnSheetDelete").addEventListener("click", function () {
     const idx = activeDetailIndex;
     if (idx < 0) return;
-    if (deleteProject(idx)) closeDetailSheet();
+    const removed = deleteProject(idx);
+    if (removed) closeDetailSheet();
   });
 
+  // ปิดแท็บด้วยปุ่ม Esc
   document.addEventListener("keydown", function (ev) {
     if (ev.key === "Escape") closeDetailSheet();
   });
+
+  // ปุ่มย้อนกลับของเครื่อง / เบราว์เซอร์ → ปิดแท็บรายละเอียด (ไม่ออกจากแอป)
   window.addEventListener("popstate", function () {
     const sheet = document.getElementById("detailSheet");
     if (sheet && !sheet.hidden) closeDetailSheet({ fromHistory: true });
   });
 }
 
+// ==========================================================
+//   เชื่อมต่อ Supabase
+// ==========================================================
 async function initSupabase() {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    setConnectionStatus(false, "ยังไม่ได้ตั้งค่า"); return;
+    setConnectionStatus(false, "ยังไม่ได้ตั้งค่า");
+    return;
   }
+  if (typeof window.supabase === "undefined" || !window.supabase.createClient) {
+    setConnectionStatus(false, "ไม่พบ Supabase SDK");
+    return;
+  }
+
   try {
     supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const res = await supabaseClient.from(TABLE_NAME).select("id", { count: "exact", head: true });
+
+    // แก้บั๊ก: เดิมใช้ select('count') ซึ่งไม่มีคอลัมน์นี้ → error เสมอ
+    const res = await supabaseClient
+      .from(TABLE_NAME)
+      .select("id", { count: "exact", head: true });
+
     if (res.error) {
-      setConnectionStatus(false, "เข้าถึงตารางไม่ได้"); return;
+      console.warn("⚠️ ไม่สามารถเข้าถึงตารางได้:", res.error.message);
+      setConnectionStatus(false, "เข้าถึงตารางไม่ได้ (ตรวจ RLS / ชื่อตาราง)");
+      return;
     }
     setConnectionStatus(true, "", res.count);
   } catch (e) {
+    console.error("❌ เกิดข้อผิดพลาด:", e);
     setConnectionStatus(false, "เกิดข้อผิดพลาดในการเชื่อมต่อ");
   }
 }
 
+// ==========================================================
+//   แสดงสถานะการเชื่อมต่อ
+// ==========================================================
 function setConnectionStatus(online, message, count) {
   isOnline = !!online;
   const el = document.getElementById("connectionStatus");
   if (isOnline) {
     el.className = "connection-status status-online";
-    el.textContent = "🟢 เชื่อมต่อ Cloud สำเร็จ" + (typeof count === "number" ? " (" + count.toLocaleString("th-TH") + " รายการบน Cloud)" : "");
+    el.textContent = "🟢 เชื่อมต่อ Cloud สำเร็จ" +
+      (typeof count === "number" ? " (" + count.toLocaleString("th-TH") + " รายการบน Cloud)" : "");
   } else {
     el.className = "connection-status status-offline";
     el.textContent = "🔴 ออฟไลน์ " + (message ? "(" + message + ")" : "(ใช้ข้อมูลในเครื่อง)");
@@ -698,20 +1295,33 @@ function updateSplashStatus(text) {
   if (el) el.textContent = text;
 }
 
+// ==========================================================
+//   ฟังก์ชั่นโหลด / บันทึกข้อมูลในเครื่อง
+// ==========================================================
 function loadData() {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       const parsed = JSON.parse(saved);
       projects = Array.isArray(parsed) ? parsed.map(migrateRecord) : [];
+      console.log("📂 โหลดข้อมูล " + projects.length + " รายการจากเครื่อง");
     }
-  } catch (e) { projects = []; }
+  } catch (e) {
+    console.error("❌ โหลดข้อมูลไม่สำเร็จ:", e && e.message);
+    projects = [];
+  }
   try {
     const pd = localStorage.getItem(PENDING_DELETE_KEY);
-    pendingDeletes = pd ? (Array.isArray(JSON.parse(pd)) ? JSON.parse(pd) : []) : [];
-  } catch (e) { pendingDeletes = []; }
+    const parsed = pd ? JSON.parse(pd) : [];
+    pendingDeletes = Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    pendingDeletes = [];
+  }
 }
 
+// ==========================================================
+//   รองรับข้อมูลเก่าที่ใช้ createdAt / updatedAt (camelCase)
+// ==========================================================
 function migrateRecord(r) {
   const o = Object.assign({}, r);
   if (o.createdAt && !o.created_at) o.created_at = o.createdAt;
@@ -726,28 +1336,44 @@ function saveToLocal() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
     localStorage.setItem(PENDING_DELETE_KEY, JSON.stringify(pendingDeletes));
-  } catch (e) { showToast("⚠️ บันทึกลงเครื่องไม่สำเร็จ (พื้นที่อาจเต็ม)", "error"); }
+  } catch (e) {
+    console.error("❌ บันทึกลงเครื่องไม่สำเร็จ:", e && e.message);
+    showToast("⚠️ บันทึกลงเครื่องไม่สำเร็จ (พื้นที่เก็บข้อมูลอาจเต็ม)", "error");
+  }
 }
 
+// ==========================================================
+//   เครื่องมือช่วย
+// ==========================================================
 function normalizeStatus(v) {
   if (v === null || v === undefined) return "pending";
   const key = String(v).trim().toLowerCase();
   return STATUS_ALIASES[key] || STATUS_ALIASES[String(v).trim()] || "pending";
 }
+
 function escapeHtml(str) {
   if (str === null || str === undefined) return "";
-  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
+
 function formatMoney(v) {
   if (v === null || v === undefined || v === "") return "-";
   const n = Number(v);
   if (!Number.isFinite(n)) return "-";
   return n.toLocaleString("th-TH", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
 function clampProgress(v) {
   const n = parseInt(v, 10);
-  return Number.isNaN(n) ? 0 : Math.min(100, Math.max(0, n));
+  if (Number.isNaN(n)) return 0;
+  return Math.min(100, Math.max(0, n));
 }
+
 function toNumberOrNull(v) {
   if (v === null || v === undefined || String(v).trim() === "") return null;
   const n = Number(v);
@@ -755,49 +1381,13 @@ function toNumberOrNull(v) {
 }
 
 // ==========================================================
-// 📍 ฟังก์ชันสร้างแท็บปีอัตโนมัติ
-// ==========================================================
-function renderYearTabs() {
-  const container = document.getElementById('yearTabsContainer');
-  if (!container) return;
-
-  const yearsSet = new Set();
-  projects.forEach(p => {
-    if (p.year && String(p.year).trim() !== "") {
-      yearsSet.add(String(p.year).trim());
-    }
-  });
-  const years = Array.from(yearsSet);
-
-  if (years.length === 0) {
-    container.innerHTML = '';
-    return;
-  }
-
-  years.sort((a, b) => a.localeCompare(b, 'th', { numeric: true }));
-
-  let html = `<button class="year-tab ${activeYearFilter === 'ทั้งหมด' ? 'active' : ''}" onclick="setYearFilter('ทั้งหมด')">ทั้งหมด</button>`;
-  years.forEach(y => {
-    html += `<button class="year-tab ${activeYearFilter === y ? 'active' : ''}" onclick="setYearFilter('${y}')">ปี ${y}</button>`;
-  });
-  container.innerHTML = html;
-}
-
-function setYearFilter(year) {
-  activeYearFilter = year;
-  renderList(); 
-}
-
-// ==========================================================
-// 📍 ฟังก์ชั่นแสดงรายการ (อัปเดตระบบจัดเรียงเลขสัญญา)
+//   ฟังก์ชั่นแสดงรายการ
 // ==========================================================
 function renderList() {
   const container = document.getElementById("projectList");
   const countEl = document.getElementById("projectCount");
   const term = document.getElementById("searchBox").value.trim().toLowerCase();
   const statusFilter = document.getElementById("filterStatus").value;
-
-  renderYearTabs();
 
   visibleIndexes = [];
   projects.forEach(function (p, i) {
@@ -807,44 +1397,7 @@ function renderList() {
         .map(function (x) { return x ? String(x).toLowerCase() : ""; }).join(" ");
       if (hay.indexOf(term) === -1) return;
     }
-    if (activeYearFilter !== 'ทั้งหมด') {
-      const py = p.year ? String(p.year).trim() : 'ไม่ระบุ';
-      if (py !== activeYearFilter) return;
-    }
     visibleIndexes.push(i);
-  });
-
-  // 📍 จัดเรียงตามเลขที่สัญญา (ใช้ Regex แยกตัวเลข)
-  visibleIndexes.sort(function(a, b) {
-    const contractA = projects[a].contract_no ? String(projects[a].contract_no).trim() : "";
-    const contractB = projects[b].contract_no ? String(projects[b].contract_no).trim() : "";
-    
-    if (!contractA && contractB) return 1;
-    if (contractA && !contractB) return -1;
-    if (!contractA && !contractB) return 0;
-    
-    const parseContract = (str) => {
-      const parts = str.match(/\d+/g); 
-      if (parts && parts.length >= 2) {
-         return {
-           year: parseInt(parts[parts.length - 1], 10),
-           num: parseInt(parts[parts.length - 2], 10)
-         };
-      }
-      return null;
-    };
-
-    const parsedA = parseContract(contractA);
-    const parsedB = parseContract(contractB);
-
-    if (parsedA && parsedB) {
-      if (parsedA.year !== parsedB.year) {
-        return parsedB.year - parsedA.year; 
-      }
-      return parsedA.num - parsedB.num; 
-    }
-    
-    return contractA.localeCompare(contractB, 'th', { numeric: true });
   });
 
   countEl.textContent = (term || statusFilter)
@@ -863,75 +1416,136 @@ function renderList() {
   }
 
   let html = '<div class="card-grid">';
-  visibleIndexes.forEach(function (i) { html += buildProjectCard(projects[i], i); });
+  visibleIndexes.forEach(function (i) {
+    html += buildProjectCard(projects[i], i);
+  });
   html += "</div>";
 
   if (pendingDeletes.length > 0) {
-    html += '<div class="field-hint">🕓 มี ' + pendingDeletes.length + " รายการรอลบบน Cloud — กด “ส่งข้อมูลขึ้น Cloud” เพื่อดำเนินการให้เสร็จ</div>";
+    html += '<div class="field-hint">🕓 มี ' + pendingDeletes.length +
+      " รายการรอลบบน Cloud — กด “ส่งข้อมูลขึ้น Cloud” เพื่อดำเนินการให้เสร็จ</div>";
   }
   container.innerHTML = html;
+
+  // ถ้าแท็บรายละเอียดเปิดอยู่ ให้อัปเดตเนื้อหาตามข้อมูลใหม่เสมอ
   refreshDetailSheet();
 }
 
+// ==========================================================
+// ---------- การ์ดโครงการ 1 ใบ ----------
+// แถบบน  = เลขที่สัญญา (เด่นที่สุด)
+// แถบล่าง = ชื่อโครงการ / สถานะ / ปีงบประมาณ / ความก้าวหน้า
+// กดการ์ดทั้งใบ → เปิดแท็บรายละเอียด ที่มีปุ่มแก้ไข / ลบ อยู่ในตัว
+// ==========================================================
 function buildProjectCard(p, i) {
   const st = normalizeStatus(p.status);
   const prog = clampProgress(p.progress);
   const cloudIcon = p.cloud_id ? "☁️" : "💻";
-  const cloudTitle = p.cloud_id ? "ซิงก์กับ Cloud แล้ว" : "ยังอยู่ในเครื่องเท่านั้น";
+  const cloudTitle = p.cloud_id ? "ชิงก์กับ Cloud แล้ว" : "ยังอยู่ในเครื่องเท่านั้น";
   const hasContract = p.contract_no !== undefined && p.contract_no !== null && String(p.contract_no).trim() !== "";
   const contractText = hasContract ? String(p.contract_no) : "ยังไม่ระบุเลขที่สัญญา";
 
-  let h = '<article class="pcard" data-status="' + st + '" data-index="' + i + '" role="button" tabindex="0" aria-label="เปิดรายละเอียดสัญญา ' + escapeHtml(contractText) + '">';
-  h += '<div class="pcard-head"><div class="pcard-head-main"><div class="pcard-contract-label">เลขที่สัญญา</div>';
-  h += '<div class="pcard-contract' + (hasContract ? "" : " is-empty") + '">' + escapeHtml(contractText) + "</div></div>";
-  h += '<span class="pcard-cloud" title="' + escapeHtml(cloudTitle) + '">' + cloudIcon + "</span></div>";
+  let h = '<article class="pcard" data-status="' + st + '" data-index="' + i + '"' +
+    ' role="button" tabindex="0" aria-label="เปิดรายละเอียดสัญญา ' + escapeHtml(contractText) + '">';
 
-  h += '<div class="pcard-body"><h4 class="pcard-title">' + escapeHtml(p.name || "(ไม่มีชื่อโครงการ)") + "</h4>";
-  h += '<div class="pcard-meta"><span class="status-badge status-' + st + '">' + escapeHtml(STATUS_LABELS[st]) + "</span>";
+  // ===== แถบบน: เลขที่สัญญาเด่นที่สุด =====
+  h += '<div class="pcard-head">' +
+    '<div class="pcard-head-main">' +
+      '<div class="pcard-contract-label">เลขที่สัญญา</div>' +
+      '<div class="pcard-contract' + (hasContract ? "" : " is-empty") + '">' + escapeHtml(contractText) + "</div>" +
+    "</div>" +
+    '<span class="pcard-cloud" title="' + escapeHtml(cloudTitle) + '" aria-label="' + escapeHtml(cloudTitle) + '">' + cloudIcon + "</span>" +
+    "</div>";
+
+  // ===== แถบล่าง: ชื่อโครงการ / สถานะ / ปีงบ / ความก้าวหน้า =====
+  h += '<div class="pcard-body">';
+  h += '<h4 class="pcard-title">' + escapeHtml(p.name || "(ไม่มีชื่อโครงการ)") + "</h4>";
+
+  h += '<div class="pcard-meta">' +
+    '<span class="status-badge status-' + st + '">' + escapeHtml(STATUS_LABELS[st]) + "</span>";
   if (p.year) h += '<span class="tag tag-muted">📅 ปีงบ ' + escapeHtml(p.year) + "</span>";
   h += "</div>";
 
-  h += '<div class="pcard-progress"><div class="pcard-progress-label"><span>ความก้าวหน้า</span><strong>' + prog + "%</strong></div>";
-  h += '<span class="progress-track wide"><span class="progress-fill" style="width:' + prog + '%"></span></span></div>';
-  h += '<div class="pcard-hint">แตะการ์ดเพื่อดูรายละเอียด ›</div></div></article>';
+  h += '<div class="pcard-progress">' +
+    '<div class="pcard-progress-label"><span>ความก้าวหน้า</span><strong>' + prog + "%</strong></div>" +
+    '<span class="progress-track wide" role="img" aria-label="ความก้าวหน้า ' + prog + ' เปอร์เซนต์">' +
+    '<span class="progress-fill" style="width:' + prog + '%"></span></span></div>';
+
+  h += '<div class="pcard-hint">แตะการ์ดเพื่อดูรายละเอียด ›</div>';
+  h += "</div>";
+
+  h += "</article>";
   return h;
 }
 
+// ==========================================================
+// ---------- เนื้อหารายละเอียดครบทุกฟิลด์ (ใช้ในแท็บ) ----------
+// ==========================================================
 function buildDetailBody(p) {
   const budget = toNumberOrNull(p.budget);
   const disbursed = toNumberOrNull(p.disbursed);
-  const pctPaid = (budget && budget > 0 && disbursed !== null) ? Math.round((disbursed / budget) * 1000) / 10 : null;
+  const pctPaid = (budget && budget > 0 && disbursed !== null)
+    ? Math.round((disbursed / budget) * 1000) / 10
+    : null;
   const st = normalizeStatus(p.status);
   const prog = clampProgress(p.progress);
 
-  let h = '<dl class="sheet-figures"><div><dt>งบประมาณ</dt><dd>' + escapeHtml(formatMoney(p.budget)) + '</dd></div>';
-  h += '<div><dt>เบิกจ่ายแล้ว</dt><dd>' + escapeHtml(formatMoney(p.disbursed)) + (pctPaid !== null ? " <small>(" + pctPaid + "%)</small>" : "") + '</dd></div></dl>';
+  // กล่องตัวเลขเงิน
+  let h = '<dl class="sheet-figures">' +
+    "<div><dt>งบประมาณ</dt><dd>" + escapeHtml(formatMoney(p.budget)) + "</dd></div>" +
+    "<div><dt>เบิกจ่ายแล้ว</dt><dd>" + escapeHtml(formatMoney(p.disbursed)) +
+      (pctPaid !== null ? " <small>(" + pctPaid + "%)</small>" : "") +
+    "</dd></div></dl>";
 
-  h += '<div class="pcard-meta" style="margin-bottom:0.7rem"><span class="status-badge status-' + st + '">' + escapeHtml(STATUS_LABELS[st]) + '</span>';
-  h += '<span class="tag tag-muted">ความก้าวหน้า ' + prog + '%</span></div>';
+  // แถบความก้าวหน้า + สถานะ
+  h += '<div class="pcard-meta" style="margin-bottom:0.7rem">' +
+    '<span class="status-badge status-' + st + '">' + escapeHtml(STATUS_LABELS[st]) + "</span>" +
+    '<span class="tag tag-muted">ความก้าวหน้า ' + prog + "%</span>" +
+    "</div>";
 
   const rows = [
-    ["ชื่อโครงการ", p.name], ["ปีงบประมาณ", p.year], ["แหล่งทุน", p.source], ["ผู้รับจ้าง", p.contractor],
-    ["หมายเลขสายทาง", p.route_no], ["ชื่อช่วงทาง", p.section_name], ["ช่วงกิโลเมตร", p.km_range],
+    ["ชื่อโครงการ", p.name],
+    ["ปีงบประมาณ", p.year],
+    ["แหล่งทุน", p.source],
+    ["ผู้รับจ้าง", p.contractor],
+    ["หมายเลขสายทาง", p.route_no],
+    ["ชื่อช่วงทาง", p.section_name],
+    ["ช่วงกิโลเมตร", p.km_range],
     ["สถานะการซิงค์", p.cloud_id ? "☁️ อยู่บน Cloud แล้ว" : "💻 เก็บในเครื่องเท่านั้น"],
     ["บันทึกล่าสุด", formatDateTime(p.updated_at || p.created_at)]
   ];
+
   h += '<dl class="detail-list">';
-  rows.forEach(r => { h += "<dt>" + escapeHtml(r[0]) + "</dt><dd>" + escapeHtml(r[1] !== null && r[1] !== undefined && String(r[1]) !== "" ? String(r[1]) : "-") + "</dd>"; });
+  rows.forEach(function (r) {
+    h += "<dt>" + escapeHtml(r[0]) + "</dt><dd>" +
+      escapeHtml(r[1] !== null && r[1] !== undefined && String(r[1]) !== "" ? String(r[1]) : "-") + "</dd>";
+  });
   h += "</dl>";
 
   if (p.detail && String(p.detail).trim() !== "") {
-    h += '<div class="detail-block"><span class="block-label">รายละเอียด / หมายเหตุ</span><div class="note-box">' + escapeHtml(p.detail) + '</div></div>';
+    h += '<div class="detail-block"><span class="block-label">รายละเอียด / หมายเหตุ</span>' +
+      '<div class="note-box">' + escapeHtml(p.detail) + "</div></div>";
   }
 
   const persons = Array.isArray(p.persons) ? p.persons : [];
   if (persons.length > 0) {
-    h += '<div class="detail-block"><span class="block-label">👥 คณะกรรมการตรวจรับพัสดุและผู้ควบคุมงาน</span><table class="person-table"><thead><tr><th>ลำดับ</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>บทบาทหน้าที่</th></tr></thead><tbody>';
-    persons.forEach((person, idx) => {
+    h += '<div class="detail-block">' +
+      '<span class="block-label">👥 คณะกรรมการตรวจรับพัสดุและผู้ควบคุมงาน</span>' +
+      '<table class="person-table">' +
+      '<thead><tr><th>ลำดับ</th><th>ชื่อ-นามสกุล</th><th>ตำแหน่ง</th><th>บทบาทหน้าที่</th></tr></thead><tbody>';
+    persons.forEach(function (person, idx) {
       if (person && typeof person === "object") {
-        h += '<tr><td>' + (idx + 1) + '</td><td>' + escapeHtml(String(person.name || person.fullname || "-")) + '</td><td>' + escapeHtml(String(person.position || person.pos || "")) + '</td><td>' + (person.role ? '<span class="person-role">' + escapeHtml(String(person.role)) + '</span>' : '-') + '</td></tr>';
+        const nm = person.name || person.fullname || "-";
+        const pos = person.position || person.pos || "";
+        const role = person.role || "";
+        h += '<tr><td>' + (idx + 1) + '</td>' +
+          '<td>' + escapeHtml(String(nm)) + '</td>' +
+          '<td>' + escapeHtml(String(pos)) + '</td>' +
+          '<td>' + (role ? '<span class="person-role">' + escapeHtml(String(role)) + '</span>' : '-') + '</td></tr>';
       } else {
-        h += '<tr><td>' + (idx + 1) + '</td><td>' + escapeHtml(String(person)) + '</td><td>-</td><td>-</td></tr>';
+        h += '<tr><td>' + (idx + 1) + '</td>' +
+          '<td>' + escapeHtml(String(person)) + '</td>' +
+          '<td>-</td><td>-</td></tr>';
       }
     });
     h += '</tbody></table></div>';
@@ -939,16 +1553,26 @@ function buildDetailBody(p) {
   return h;
 }
 
+// ==========================================================
+// คีย์ประจำการ์ด ใช้อ้างอิงโครงการที่เปิดแท็บค้างไว้
+// ==========================================================
 function cardKey(p, i) {
-  if (p.cloud_id) return "c" + p.cloud_id;
+  if (p.cloud_id !== undefined && p.cloud_id !== null && p.cloud_id !== "") return "c" + p.cloud_id;
   if (p.local_id) return "l" + p.local_id;
   return "i" + i;
 }
 
+// ==========================================================
+// 🗂️ แท็บรายละเอียดโครงการ
+//  - กดการ์ดทั้งใบ → เปิดแท็บ
+//  - ปุ่มย้อนกลับของเครื่อง / ปุ่ม ✕ / กดพื้นหลัง / Esc → ปิดแท็บ
+// ==========================================================
 function openDetailSheet(idx, opts) {
   const p = projects[idx];
   if (!p) return;
   const sheet = document.getElementById("detailSheet");
+  if (!sheet) return;
+
   activeDetailIndex = idx;
   activeDetailKey = cardKey(p, idx);
 
@@ -960,38 +1584,59 @@ function openDetailSheet(idx, opts) {
 
   sheet.hidden = false;
   document.body.classList.add("sheet-open");
+  // บังคับ reflow ก่อนใส่คลาส open เพื่อให้อนิเมชันเลื่อนขึ้นทำงาน
   void sheet.offsetWidth;
   sheet.classList.add("open");
+  window.setTimeout(function () {
+    const closeBtn = document.getElementById("btnSheetClose");
+    if (closeBtn) closeBtn.focus();
+  }, 60);
 
+  // เพิ่ม history entry เพื่อให้กดปุ่มย้อนกลับของมือถือ/เบราว์เพอร์แล้วแท็บหาย
   if (!(opts && opts.fromHistory)) {
-    try { history.pushState({ hwSheet: true, key: activeDetailKey }, "", location.href); sheetHistoryPushed = true; } 
-    catch (e) { sheetHistoryPushed = false; }
+    try {
+      history.pushState({ hwSheet: true, key: activeDetailKey }, "", location.href);
+      sheetHistoryPushed = true;
+    } catch (e) {
+      sheetHistoryPushed = false;
+    }
   }
 }
 
+// ปิดแท็บ; ถ้าเรียกจาก popstate จะส่ง fromHistory = true เพื่อไม่ต้อง history.back() ส้อน
 function closeDetailSheet(opts) {
   const sheet = document.getElementById("detailSheet");
   if (!sheet || sheet.hidden) return;
+
   sheet.classList.remove("open");
   document.body.classList.remove("sheet-open");
-  window.setTimeout(() => { if (!sheet.classList.contains("open")) sheet.hidden = true; }, 300);
+  window.setTimeout(function () {
+    if (!sheet.classList.contains("open")) sheet.hidden = true;
+  }, 300);
+
   activeDetailIndex = -1;
   activeDetailKey = null;
 
   if (!(opts && opts.fromHistory) && sheetHistoryPushed) {
     sheetHistoryPushed = false;
-    try { history.back(); } catch (e) { }
-  } else { sheetHistoryPushed = false; }
+    try { history.back(); } catch (e) { /* ไม่มีผล */ }
+  } else {
+    sheetHistoryPushed = false;
+  }
 }
 
+// อัปเดตเนื้อหาแท็บหลังมีการเปลี่ยนข้อมูล (เช่น ดึงจาก Cloud หรืออัปเดตสำเร็จ)
 function refreshDetailSheet() {
   const sheet = document.getElementById("detailSheet");
   if (!sheet || sheet.hidden || activeDetailKey === null) return;
+
+  // หาตำแหน่งโครงการเดิมอีกครั้ง เพราะ index อาจเลื่อน
   let found = -1;
   for (let k = 0; k < projects.length; k++) {
     if (cardKey(projects[k], k) === activeDetailKey) { found = k; break; }
   }
   if (found === -1) { closeDetailSheet(); return; }
+
   const p = projects[found];
   activeDetailIndex = found;
   const hasContract = p.contract_no !== undefined && p.contract_no !== null && String(p.contract_no).trim() !== "";
@@ -1003,9 +1648,16 @@ function refreshDetailSheet() {
 function formatDateTime(v) {
   if (!v) return "";
   const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? "" : d.toLocaleString("th-TH", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleString("th-TH", {
+    year: "numeric", month: "short", day: "numeric",
+    hour: "2-digit", minute: "2-digit"
+  });
 }
 
+// ==========================================================
+//   ฟอร์มเพิ่ม / แก้ไข
+// ==========================================================
 function clearForm() {
   document.getElementById("editId").value = "";
   document.getElementById("editCloudId").value = "";
@@ -1020,10 +1672,11 @@ function clearForm() {
 }
 
 function showAddForm() {
-  if (!can('create')) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแล", "error"); return; }
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะเพิ่มโครงการได้", "error"); return; }
   clearForm();
   document.getElementById("formTitle").textContent = "➕ เพิ่มโครงการใหม่";
-  const fab = document.getElementById("fabAdd");
+  // ซ่อน FAB ขณะเปิดฟอร์ม
+  var fab = document.getElementById("fabAdd");
   if (fab) fab.classList.add("fab-hidden");
   document.getElementById("formCard").style.display = "block";
   document.getElementById("formCard").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1032,12 +1685,16 @@ function showAddForm() {
 
 function hideForm() {
   document.getElementById("formCard").style.display = "none";
-  const fab = document.getElementById("fabAdd");
-  if (fab && can('create')) fab.classList.remove("fab-hidden");
+  // แสดง FAB กลับเมื่อปิดฟอร์ม (ถ้าเป็นผู้ดูแล)
+  var fab = document.getElementById("fabAdd");
+  if (fab && isAdmin()) fab.classList.remove("fab-hidden");
 }
 
+// ==========================================================
+//   ฟังก์ชั่นแก้ไขโครงการ
+// ==========================================================
 function editProject(idx) {
-  if (!can('update')) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแล", "error"); return; }
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะแก้ไขโครงการได้", "error"); return; }
   const p = projects[idx];
   if (!p) return;
   clearForm();
@@ -1055,36 +1712,57 @@ function editProject(idx) {
     else if (f.type === "num") el.value = (v === null || v === undefined) ? "" : String(v);
     else el.value = v === null || v === undefined ? "" : String(v);
   });
+
+  // แสดงข้อมูลคณะกรรมการใน dynamic rows
   populateCommitteeFromData(p.persons);
 
-  const fab = document.getElementById("fabAdd");
+  // ซ่อน FAB ขณะเปิดฟอร์ม
+  var fab = document.getElementById("fabAdd");
   if (fab) fab.classList.add("fab-hidden");
+
   document.getElementById("formCard").style.display = "block";
   document.getElementById("formCard").scrollIntoView({ behavior: "smooth", block: "start" });
   document.getElementById("f_name").focus();
 }
 
+function showPersonsError(msg) {
+  showToast("⚠️ " + msg, "error");
+}
+function hidePersonsError() {
+  /* no-op: ใช้ toast แทน personsError div */ }
+
+// ==========================================================
+// อ่านค่าจากฟอร์ม → คืน object ตามคอลัมน์จริงของตาราง (หรือ null ถ้าข้อมูลไม่ผ่าน)
+// ==========================================================
 function readForm() {
   syncCommitteeToHidden();
   const out = {};
+
   for (let i = 0; i < FIELDS.length; i++) {
     const f = FIELDS[i];
     const el = document.getElementById(f.el);
     if (!el) continue;
     const raw = el.value;
-    if (f.type === "status") out[f.col] = normalizeStatus(raw);
-    else if (f.type === "int") out[f.col] = clampProgress(raw);
-    else if (f.type === "num") out[f.col] = toNumberOrNull(raw);
-    else if (f.type === "json") {
+
+    if (f.type === "status") {
+      out[f.col] = normalizeStatus(raw);
+    } else if (f.type === "int") {
+      out[f.col] = clampProgress(raw);
+    } else if (f.type === "num") {
+      out[f.col] = toNumberOrNull(raw);
+    } else if (f.type === "json") {
       const t = String(raw).trim();
-      if (t === "") out[f.col] = null;
-      else {
+      if (t === "") {
+        out[f.col] = null;
+      } else {
         try {
           const parsed = JSON.parse(t);
           if (typeof parsed !== "object" || parsed === null) throw new Error("ต้องเป็น array หรือ object");
           out[f.col] = parsed;
         } catch (e) {
-          showToast("⚠️ รูปแบบ JSON บุคลากรไม่ถูกต้อง", "error"); el.focus(); return null;
+          showToast("⚠️ รายชื่อบุคลากรไม่ใช่ JSON ที่ถูกต้อง: " + e.message, "error");
+          el.focus();
+          return null;
         }
       }
     } else {
@@ -1092,14 +1770,25 @@ function readForm() {
       out[f.col] = t === "" ? null : t;
     }
   }
-  if (!out.name) { showToast("⚠️ กรุณากรอกชื่อโครงการ", "error"); document.getElementById("f_name").focus(); return null; }
-  if (out.budget !== null && out.disbursed !== null && out.disbursed > out.budget) { showToast("⚠️ ยอดเบิกจ่ายมากกว่างบประมาณ", "error"); return null; }
+
+  if (!out.name) {
+    showToast("⚠️ กรุณากรอกชื่อโครงการ", "error");
+    document.getElementById("f_name").focus();
+    return null;
+  }
+  if (out.budget !== null && out.disbursed !== null && out.disbursed > out.budget) {
+    showToast("⚠️ ยอดเบิกจ่ายมากกว่างบประมาณ กรุณาตรวจสอบ", "error");
+    return null;
+  }
   return out;
 }
 
+// ==========================================================
+//   ฟังก์ชั่นบันทึกโครงการ
+// ==========================================================
 function saveProject(e) {
   e.preventDefault();
-  if (!can('create')) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแล", "error"); return; }
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะบันทึกได้", "error"); return; }
   const data = readForm();
   if (!data) return;
 
@@ -1120,19 +1809,24 @@ function saveProject(e) {
   } else {
     const idx = parseInt(editId, 10);
     projects[idx] = Object.assign({}, projects[idx], data);
-    showToast("✅ อัปเดตโครงการสำเร็จ", "success");
+    showToast("✅ อัปเดตโครงการสำเร็จ (อย่าลืมส่งขึ้น Cloud)", "success");
   }
+
   saveToLocal();
   renderList();
   hideForm();
 }
 
+// ==========================================================
+//   ฟังก์ชั่นลบโครงการ
+// ==========================================================
 function deleteProject(idx) {
-  if (!can('delete')) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแล", "error"); return false; }
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะลบโครงการได้", "error"); return false; }
   const p = projects[idx];
   if (!p) return false;
   if (!confirm('ยืนยันการลบรายการ "' + (p.contract_no || p.name || "(ไม่มีชื่อ)") + '"?')) return false;
 
+  // แก้บั๊ก: เดิมลบแค่ในเครื่อง พอดึงจาก Cloud ใหม่รายการจะกลับมา
   if (p.cloud_id !== undefined && p.cloud_id !== null && p.cloud_id !== "") {
     const alsoCloud = confirm("รายการนี้มีอยู่บน Cloud ด้วย\n\nกด OK = ลบออกจาก Cloud ด้วย\nกด Cancel = ลบเฉพาะในเครื่อง (ดึงข้อมูลครั้งถัดไปจะกลับมา)");
     if (alsoCloud) {
@@ -1140,6 +1834,7 @@ function deleteProject(idx) {
       deleteFromCloud(p.cloud_id);
     }
   }
+
   projects.splice(idx, 1);
   saveToLocal();
   renderList();
@@ -1148,7 +1843,10 @@ function deleteProject(idx) {
 }
 
 async function deleteFromCloud(cloudId) {
-  if (!supabaseClient || !isOnline) { showToast("ℹ️ ออฟไลน์อยู่ — บันทึกคำสั่งลบไว้", "info"); return; }
+  if (!supabaseClient || !isOnline) {
+    showToast("ℹ️ ออฟไลน์อยู่ — บันทึกคำสั่งลบไว้ จะลบบน Cloud เมื่อกดส่งข้อมูลครั้งถัดไป", "info");
+    return;
+  }
   try {
     const res = await supabaseClient.from(TABLE_NAME).delete().eq("id", cloudId);
     if (res.error) throw res.error;
@@ -1157,27 +1855,34 @@ async function deleteFromCloud(cloudId) {
     renderList();
     showToast("🗑️ ลบข้อมูลบน Cloud สำเร็จ", "success");
   } catch (err) {
-    showToast("⚠️ ลบบน Cloud ไม่สำเร็จ", "error");
+    console.warn("⚠️ ลบบน Cloud ไม่สำเร็จ:", err && err.message);
+    showToast("⚠️ ลบบน Cloud ไม่สำเร็จ: " + (err && err.message ? err.message : "ไม่ทราบสาเหตุ") + " (บันทึกไว้ลองใหม่ภายหลัง)", "error");
   }
 }
 
+// ==========================================================
+//   นำเข้า / ส่งออกไฟล์
+// ==========================================================
 function exportData() {
-  if (!can('create')) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแล", "error"); return; }
-  if (projects.length === 0) { showToast("ℹ️ ยังไม่มีข้อมูล", "info"); return; }
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะส่งออกไฟล์ได้", "error"); return; }
+  if (projects.length === 0) {
+    showToast("ℹ️ ยังไม่มีข้อมูลให้ส่งออก", "info");
+    return;
+  }
   const blob = new Blob([JSON.stringify(projects, null, 2)], { type: "application/json;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = "highway-workd-backup-" + new Date().toISOString().slice(0, 10) + ".json";
-  document.body.appendChild(a); 
+  document.body.appendChild(a);   // แก้ปัญหาบน Firefox: ต้องอยู่ใน DOM ก่อนคลิก
   a.click();
   document.body.removeChild(a);
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-  showToast("📤 ส่งออกไฟล์สำเร็จ", "success");
+  window.setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  showToast("📤 ส่งออกไฟล์สำเร็จ (" + projects.length + " รายการ)", "success");
 }
 
 function importData() {
-  if (!can('create')) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแล", "error"); return; }
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะนำเข้าไฟล์ได้", "error"); return; }
   const input = document.createElement("input");
   input.type = "file";
   input.accept = ".json,application/json";
@@ -1190,11 +1895,17 @@ function importData() {
       try {
         const imported = JSON.parse(ev.target.result);
         if (!Array.isArray(imported)) throw new Error("ไม่ใช่รายการข้อมูล");
-        const keyOf = (p) => [p.name || "", p.route_no || "", p.contract_no || "", p.km_range || ""].join("||");
+
+        const keyOf = function (p) {
+          return [p.name || "", p.route_no || "", p.contract_no || "", p.km_range || ""].join("||");
+        };
         const existingKeys = new Set(projects.map(keyOf));
-        const existingCloudIds = new Set(projects.filter(p => p.cloud_id).map(p => String(p.cloud_id)));
+        const existingCloudIds = new Set(
+          projects.filter(function (p) { return p.cloud_id; }).map(function (p) { return String(p.cloud_id); })
+        );
+
         let added = 0, skipped = 0;
-        imported.forEach(raw => {
+        imported.forEach(function (raw) {
           const p = migrateRecord(raw);
           const dupCloud = p.cloud_id && existingCloudIds.has(String(p.cloud_id));
           if (dupCloud || existingKeys.has(keyOf(p))) { skipped++; return; }
@@ -1203,205 +1914,376 @@ function importData() {
           if (p.cloud_id) existingCloudIds.add(String(p.cloud_id));
           added++;
         });
-        saveToLocal(); renderList();
-        showToast(`✅ นำเข้าสำเร็จ เพิ่ม ${added} (ซ้ำ ${skipped})`, "success");
-      } catch (err) { showToast("❌ ไฟล์ข้อมูลไม่ถูกต้อง", "error"); }
+
+        saveToLocal();
+        renderList();
+        showToast("✅ นำเข้าสำเร็จ เพิ่ม " + added + " รายการ (ข้ามรายการซ้ำ " + skipped + ")", "success");
+      } catch (err) {
+        console.error(err);
+        showToast("❌ ไฟล์ข้อมูลไม่ถูกต้อง: " + (err && err.message ? err.message : ""), "error");
+      }
     };
     reader.readAsText(file, "utf-8");
   });
   input.click();
 }
 
-async function syncFromSupabase() {
-  if (!can('create')) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแล", "error"); return; }
-  if (!supabaseClient) { showToast("⚠️ ยังไม่ได้เชื่อมต่อ Supabase", "error"); return; }
-  const btn = document.getElementById("btnDownload");
-  const label = btn.textContent;
-  btn.disabled = true; btn.textContent = "⏳ กำลังดึงข้อมูล...";
-  try {
-    const res = await supabaseClient.from(TABLE_NAME).select("*").order("created_at", { ascending: false, nullsFirst: false });
-    if (res.error) throw res.error;
-    const data = res.data || [];
-    if (data.length === 0) { showToast("ℹ️ ยังไม่มีข้อมูลใน Cloud", "info"); return; }
-    
-    const cloudProjects = data.map(row => {
-      const o = { cloud_id: row.id };
-      SYNC_COLUMNS.forEach(col => { o[col] = row[col] !== undefined ? row[col] : null; });
-      o.status = normalizeStatus(row.status);
-      o.progress = clampProgress(row.progress);
-      o.created_at = row.created_at || new Date().toISOString();
-      o.updated_at = row.updated_at || o.created_at;
-      return o;
-    });
-
-    let added = 0, updated = 0;
-    cloudProjects.forEach(cp => {
-      const idx = projects.findIndex(p => p.cloud_id !== undefined && p.cloud_id !== null && String(p.cloud_id) === String(cp.cloud_id));
-      if (idx !== -1) { projects[idx] = cp; updated++; } 
-      else { projects.push(cp); added++; }
-    });
-    saveToLocal(); renderList();
-    showToast(`✅ ดึงข้อมูลสำเร็จ: ใหม่ ${added}, อัปเดต ${updated}`, "success");
-  } catch (e) { showToast("❌ ดึงข้อมูลไม่สำเร็จ", "error"); } 
-  finally { btn.disabled = false; btn.textContent = label; }
+// ==========================================================
+//   ตัวช่วยสำหรับดึงข้อมูลจาก Cloud (ใช้ร่วมกันทั้ง auto-pull และกดปุ่มเอง)
+// ==========================================================
+async function fetchCloudRows() {
+  const res = await supabaseClient
+    .from(TABLE_NAME)
+    .select("*")
+    .order("created_at", { ascending: false, nullsFirst: false });
+  if (res.error) throw res.error;
+  return res.data || [];
 }
 
+function mergeCloudRows(data) {
+  const cloudProjects = data.map(function (row) {
+    const o = { cloud_id: row.id };
+    SYNC_COLUMNS.forEach(function (col) {
+      o[col] = row[col] !== undefined ? row[col] : null;
+    });
+    o.status = normalizeStatus(row.status);
+    o.progress = clampProgress(row.progress);
+    o.created_at = row.created_at || new Date().toISOString();
+    o.updated_at = row.updated_at || o.created_at;
+    return o;
+  });
+
+  let added = 0, updated = 0;
+  cloudProjects.forEach(function (cp) {
+    const idx = projects.findIndex(function (p) {
+      return p.cloud_id !== undefined && p.cloud_id !== null && String(p.cloud_id) === String(cp.cloud_id);
+    });
+    if (idx !== -1) {
+      projects[idx] = cp;
+      updated++;
+    } else {
+      projects.push(cp);
+      added++;
+    }
+  });
+  return { added: added, updated: updated };
+}
+
+// ==========================================================
+//   ฟังก์ชั่นซิงค์: ดึงข้อมูลจาก Cloud (ครบทุกคอลัมน์)
+// ==========================================================
+async function syncFromSupabase() {
+  if (!supabaseClient) {
+    showToast("⚠️ ยังไม่ได้เชื่อมต่อ Supabase", "error");
+    return;
+  }
+
+  const btn = document.getElementById("btnDownload");
+  const label = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "⏳ กำลังดึงข้อมูล...";
+
+  try {
+    const data = await fetchCloudRows();
+
+    if (data.length === 0) {
+      showToast("ℹ️ ยังไม่มีข้อมูลใน Cloud", "info");
+      return;
+    }
+
+    const stat = mergeCloudRows(data);
+
+    saveToLocal();
+    renderList();
+    showToast("✅ ดึงข้อมูลสำเร็จ: ใหม่ " + stat.added + " รายการ, อัปเดต " + stat.updated + " รายการ", "success");
+  } catch (e) {
+    console.error("❌ ดึงข้อมูลไม่สำเร็จ:", e);
+    showToast("❌ ดึงข้อมูลไม่สำเร็จ: " + (e && e.message ? e.message : "ไม่ทราบสาเหตุ"), "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label;
+  }
+}
+
+// ==========================================================
+//   ฟังก์ชั่นซิงค์: ส่งข้อมูลขึ้น Cloud (ครบทุกคอลัมน์ + เคลียร์รายการรอลบ)
+// ==========================================================
 async function syncToSupabase() {
-  if (!can('create')) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแล", "error"); return; }
-  if (!supabaseClient) { showToast("⚠️ ยังไม่ได้เชื่อมต่อ Supabase", "error"); return; }
-  if (projects.length === 0 && pendingDeletes.length === 0) { showToast("ℹ️ ไม่มีข้อมูลให้ส่ง", "info"); return; }
+  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะส่งข้อมูลขึ้น Cloud ได้", "error"); return; }
+  if (!supabaseClient) {
+    showToast("⚠️ ยังไม่ได้เชื่อมต่อ Supabase", "error");
+    return;
+  }
+  if (projects.length === 0 && pendingDeletes.length === 0) {
+    showToast("ℹ️ ไม่มีข้อมูลให้ส่ง", "info");
+    return;
+  }
 
   const btn = document.getElementById("btnUpload");
   const label = btn.textContent;
-  btn.disabled = true; btn.textContent = "⏳ กำลังส่งข้อมูล...";
+  btn.disabled = true;
+  btn.textContent = "⏳ กำลังส่งข้อมูล...";
 
   let inserted = 0, updatedCount = 0, deleted = 0, failed = 0;
+  const errors = [];
+
   try {
+    // 1) เคลียร์รายการที่ค้างรอลบบน Cloud
     const stillPending = [];
     for (const cid of pendingDeletes) {
       const res = await supabaseClient.from(TABLE_NAME).delete().eq("id", cid);
-      if (res.error) { stillPending.push(cid); failed++; } else deleted++;
+      if (res.error) { stillPending.push(cid); failed++; errors.push("ลบ id " + cid + ": " + res.error.message); }
+      else deleted++;
     }
     pendingDeletes = stillPending;
 
+    // 2) ส่งข้อมูลขึ้น — ครบทุกคอลัมน์
     for (const p of projects) {
       const rowData = {};
-      SYNC_COLUMNS.forEach(col => {
+      SYNC_COLUMNS.forEach(function (col) {
         let v = p[col];
-        if (col === "status") v = statusToDbText(v);   
+        if (col === "status") v = statusToDbText(v);   // เขียนเป็นคำไทยลงฐานข้อมูล ให้อ่านรู้จากหน้าเว็บ Supabase ได้
         if (col === "progress") v = clampProgress(v);
-        rowData[col] = v === undefined ? null : v;
+        if (v === undefined) v = null;
+        rowData[col] = v;
       });
       rowData.updated_at = new Date().toISOString();
-      if (!rowData.name) { failed++; continue; }
 
-      if (p.cloud_id) {
+      if (!rowData.name) { failed++; errors.push("ข้ามรายการที่ไม่มีชื่อโครงการ"); continue; }
+
+      if (p.cloud_id !== undefined && p.cloud_id !== null && p.cloud_id !== "") {
         const res = await supabaseClient.from(TABLE_NAME).update(rowData).eq("id", p.cloud_id).select();
-        if (res.error) { failed++; } 
-        else if (!res.data || res.data.length === 0) {
+        if (res.error) {
+          failed++;
+          errors.push(p.name + ": " + res.error.message);
+        } else if (!res.data || res.data.length === 0) {
+          // แถวหายไปจาก Cloud (ถูกลบ) → เพิ่มกลับเป็นรายการใหม่
           const ins = await supabaseClient.from(TABLE_NAME).insert(rowData).select();
-          if (!ins.error) { p.cloud_id = ins.data[0].id; inserted++; } else failed++;
-        } else { updatedCount++; }
+          if (ins.error) { failed++; errors.push(p.name + ": " + ins.error.message); }
+          else { p.cloud_id = ins.data[0].id; inserted++; }
+        } else {
+          updatedCount++;
+        }
       } else {
         const res = await supabaseClient.from(TABLE_NAME).insert(rowData).select();
-        if (res.error) { failed++; } 
-        else if (res.data && res.data[0]) {
+        if (res.error) {
+          failed++;
+          errors.push(p.name + ": " + res.error.message);
+        } else if (res.data && res.data[0]) {
           p.cloud_id = res.data[0].id;
           if (res.data[0].created_at) p.created_at = res.data[0].created_at;
           inserted++;
         }
       }
     }
-    saveToLocal(); renderList();
-    let msg = `✅ ส่งข้อมูลเสร็จ: เพิ่ม ${inserted}, อัปเดต ${updatedCount}`;
-    if (deleted > 0) msg += `, ลบ ${deleted}`;
-    if (failed > 0) msg += ` | ล้มเหลว ${failed}`;
+
+    saveToLocal();
+    renderList();
+
+    let msg = "✅ ส่งข้อมูลเสร็จ: เพิ่ม " + inserted + ", อัปเดต " + updatedCount;
+    if (deleted > 0) msg += ", ลบ " + deleted;
+    if (failed > 0) msg += " | ล้มเหลว " + failed + " รายการ";
     showToast(msg, failed > 0 ? "error" : "success");
-  } catch (e) { showToast("❌ เกิดข้อผิดพลาด", "error"); } 
-  finally { btn.disabled = false; btn.textContent = label; }
+    if (errors.length > 0) console.warn("⚠️ รายละเอียดข้อผิดพลาด:\n" + errors.join("\n"));
+  } catch (e) {
+    console.error("❌ ส่งข้อมูลไม่สำเร็จ:", e);
+    showToast("❌ เกิดข้อผิดพลาด: " + (e && e.message ? e.message : "ไม่ทราบสาเหตุ"), "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label;
+  }
 }
 
+// ==========================================================
+//   Toast แจ้งเตือน
+// ==========================================================
 let toastTimer = null;
 function showToast(message, type) {
   const toast = document.getElementById("toast");
   toast.textContent = message;
   toast.className = "toast " + (type || "info") + " show";
   if (toastTimer) window.clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => toast.classList.remove("show"), 3500);
+  toastTimer = window.setTimeout(function () {
+    toast.classList.remove("show");
+  }, 3500);
 }
 
 // ==========================================================
-//   Dynamic Committee Rows
+//   Dynamic Committee Rows — เพิ่มทีละคน
 // ==========================================================
 var COMMITTEE_ROLES = ["ประธานคณะกรรมการ", "กรรมการ", "ผู้ควบคุมงาน", "ผู้ช่วยผู้ควบคุมงาน"];
+
 function createCommitteeRow(data) {
   data = data || {};
-  var row = document.createElement("div"); row.className = "committee-row";
-  var nameInput = document.createElement("input"); nameInput.type = "text"; nameInput.placeholder = "ชื่อ-นามสกุล"; nameInput.value = data.name || "";
-  var posInput = document.createElement("input"); posInput.type = "text"; posInput.placeholder = "ตำแหน่ง"; posInput.value = data.position || "";
+  var row = document.createElement("div");
+  row.className = "committee-row";
+
+  var nameInput = document.createElement("input");
+  nameInput.type = "text";
+  nameInput.placeholder = "ชื่อ-นามสกุล";
+  nameInput.value = data.name || "";
+  nameInput.setAttribute("aria-label", "ชื่อ-นามสกุล");
+
+  var posInput = document.createElement("input");
+  posInput.type = "text";
+  posInput.placeholder = "ตำแหน่ง";
+  posInput.value = data.position || "";
+  posInput.setAttribute("aria-label", "ตำแหน่ง");
+
   var roleSelect = document.createElement("select");
-  var defaultOpt = document.createElement("option"); defaultOpt.value = ""; defaultOpt.textContent = "-- เลือกประเภท --"; roleSelect.appendChild(defaultOpt);
-  COMMITTEE_ROLES.forEach(r => {
-    var opt = document.createElement("option"); opt.value = r; opt.textContent = r;
+  roleSelect.setAttribute("aria-label", "บทบาทหน้าที่");
+  var defaultOpt = document.createElement("option");
+  defaultOpt.value = "";
+  defaultOpt.textContent = "-- เลือกประเภท --";
+  roleSelect.appendChild(defaultOpt);
+  COMMITTEE_ROLES.forEach(function(r) {
+    var opt = document.createElement("option");
+    opt.value = r;
+    opt.textContent = r;
     if (data.role === r) opt.selected = true;
     roleSelect.appendChild(opt);
   });
+  // ถ้าบทบาทไม่อยู่ในรายการมาตรฐาน ให้เพิ่มเป็น custom option
   if (data.role && COMMITTEE_ROLES.indexOf(data.role) === -1) {
-    var customOpt = document.createElement("option"); customOpt.value = data.role; customOpt.textContent = data.role; customOpt.selected = true; roleSelect.appendChild(customOpt);
+    var customOpt = document.createElement("option");
+    customOpt.value = data.role;
+    customOpt.textContent = data.role;
+    customOpt.selected = true;
+    roleSelect.appendChild(customOpt);
   }
-  var removeBtn = document.createElement("button"); removeBtn.type = "button"; removeBtn.className = "committee-remove-btn"; removeBtn.textContent = "✕";
-  removeBtn.addEventListener("click", () => removeCommitteeRow(row));
-  row.appendChild(nameInput); row.appendChild(posInput); row.appendChild(roleSelect); row.appendChild(removeBtn);
+
+  var removeBtn = document.createElement("button");
+  removeBtn.type = "button";
+  removeBtn.className = "committee-remove-btn";
+  removeBtn.textContent = "✕";
+  removeBtn.title = "ลบรายชื่อ";
+  removeBtn.setAttribute("aria-label", "ลบรายชื่อ");
+  removeBtn.addEventListener("click", function() {
+    removeCommitteeRow(row);
+  });
+
+  row.appendChild(nameInput);
+  row.appendChild(posInput);
+  row.appendChild(roleSelect);
+  row.appendChild(removeBtn);
+
   return row;
 }
+
 function addCommitteeRow(data) {
   var container = document.getElementById("committeeRows");
   if (!container) return;
-  var row = createCommitteeRow(data); container.appendChild(row);
+  var row = createCommitteeRow(data);
+  container.appendChild(row);
+  var nameInput = row.querySelector('input[aria-label="ชื่อ-นามสกุล"]');
+  if (nameInput) nameInput.focus();
 }
+
 function removeCommitteeRow(rowEl) {
   var container = document.getElementById("committeeRows");
   if (!container) return;
+  // ต้องมีอย่างน้อย 1 แถว — ถ้าเหลือแถวเดียวให้เคลียร์ค่าแทนการลบ
   if (container.children.length <= 1) {
-    rowEl.querySelectorAll('input[type="text"]').forEach(inp => inp.value = "");
-    var sel = rowEl.querySelector("select"); if (sel) sel.value = ""; return;
+    var inputs = rowEl.querySelectorAll('input[type="text"]');
+    inputs.forEach(function(inp) { inp.value = ""; });
+    var sel = rowEl.querySelector("select");
+    if (sel) sel.value = "";
+    return;
   }
   container.removeChild(rowEl);
 }
+
 function syncCommitteeToHidden() {
   var container = document.getElementById("committeeRows");
   var hiddenInput = document.getElementById("f_persons");
   if (!container || !hiddenInput) return;
+
   var persons = [];
-  container.querySelectorAll(".committee-row").forEach(row => {
+  var rows = container.querySelectorAll(".committee-row");
+  rows.forEach(function(row) {
     var inputs = row.querySelectorAll('input[type="text"]');
     var sel = row.querySelector("select");
     var n = inputs[0] ? inputs[0].value.trim() : "";
     var p = inputs[1] ? inputs[1].value.trim() : "";
     var r = sel ? sel.value.trim() : "";
-    if (n || p || r) persons.push({ name: n, position: p, role: r });
+    if (n || p || r) {
+      persons.push({ name: n, position: p, role: r });
+    }
   });
+
   hiddenInput.value = persons.length > 0 ? JSON.stringify(persons) : "";
 }
+
 function populateCommitteeFromData(persons) {
   var container = document.getElementById("committeeRows");
   if (!container) return;
   container.innerHTML = "";
+
   var arr = Array.isArray(persons) ? persons : [];
-  if (arr.length === 0) { addCommitteeRow({}); } 
-  else { arr.forEach(p => { var data = (typeof p === "object" && p !== null) ? p : { name: String(p) }; addCommitteeRow(data); }); }
+  if (arr.length === 0) {
+    addCommitteeRow({}); // เริ่มต้น 1 แถวว่าง
+  } else {
+    arr.forEach(function(p) {
+      var data = (typeof p === "object" && p !== null) ? p : { name: String(p) };
+      addCommitteeRow(data);
+    });
+  }
 }
 </script>
 
 <script>
-// ===== ลงทะเบียน Service Worker =====
+// ===== ลงทะเบียน Service Worker + จัดการอัปเดต =====
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('./sw.js').then(reg => {
     console.log('✅ Service Worker ลงทะเบียนสำเร็จ');
+
+    // ตรวจจับ SW เวอร์ชันใหม่ทุก 60 วินาที
     setInterval(() => reg.update(), 60000);
+
+    // เมื่อมี SW ใหม่รออยู่ → แจ้งผู้ใช้
     reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
       newWorker.addEventListener('statechange', () => {
         if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          // มีเวอร์ชันใหม่พร้อมใช้ → แสดงแจ้งเตือน
           if (confirm('🔄 มีอัปเดตใหม่พร้อมใช้งาน\nต้องการรีเฟรชเพื่ออัปเดตเลยไหม?')) {
             newWorker.postMessage({ type: 'skip-waiting' });
           }
         }
       });
     });
-  }).catch(err => console.warn('⚠️ Service Worker ล้มเหลว:', err));
-
-  navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
-  
-  window.addEventListener('online', () => {
-    const toast = document.createElement('div'); toast.textContent = '🟢 กลับมาออนไลน์แล้ว';
-    Object.assign(toast.style, { position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)', background:'#10b981',color:'#fff',padding:'10px 20px',borderRadius:'8px', fontSize:'14px',zIndex:'99999',boxShadow:'0 2px 8px rgba(0,0,0,0.2)' });
-    document.body.appendChild(toast); setTimeout(() => toast.remove(), 3000);
+  }).catch(err => {
+    console.warn('⚠️ Service Worker ล้มเหลว:', err);
   });
+
+  // เมื่อ SW ใหม่เข้าควบคุม → รีเฟรชอัตโนมัติ
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+
+  // ตรวจสอบสถานะออฟไลน์/ออนไลน์
+  window.addEventListener('online', () => {
+    const toast = document.createElement('div');
+    toast.textContent = '🟢 กลับมาออนไลน์แล้ว';
+    Object.assign(toast.style, {
+      position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',
+      background:'#10b981',color:'#fff',padding:'10px 20px',borderRadius:'8px',
+      fontSize:'14px',zIndex:'99999',boxShadow:'0 2px 8px rgba(0,0,0,0.2)'
+    });
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  });
+
   window.addEventListener('offline', () => {
-    const toast = document.createElement('div'); toast.textContent = '🔴 ออฟไลน์ — ใช้ข้อมูลที่แคชไว้';
-    Object.assign(toast.style, { position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)', background:'#ef4444',color:'#fff',padding:'10px 20px',borderRadius:'8px', fontSize:'14px',zIndex:'99999',boxShadow:'0 2px 8px rgba(0,0,0,0.2)' });
-    document.body.appendChild(toast); setTimeout(() => toast.remove(), 4000);
+    const toast = document.createElement('div');
+    toast.textContent = '🔴 ออฟไลน์ — ใช้ข้อมูลที่แคชไว้';
+    Object.assign(toast.style, {
+      position:'fixed',bottom:'80px',left:'50%',transform:'translateX(-50%)',
+      background:'#ef4444',color:'#fff',padding:'10px 20px',borderRadius:'8px',
+      fontSize:'14px',zIndex:'99999',boxShadow:'0 2px 8px rgba(0,0,0,0.2)'
+    });
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
   });
 }
 </script>
