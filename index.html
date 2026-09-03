@@ -2021,9 +2021,14 @@ function saveProject(e) {
     showToast("✅ อัปเดตโครงการสำเร็จ (อย่าลืมส่งขึ้น Cloud)", "success");
   }
 
-  saveToLocal();
+saveToLocal();
   renderList();
   hideForm();
+
+  // 📍 เพิ่มส่วนนี้: สั่งอัปโหลดขึ้น Cloud ทันทีถ้ามีเน็ต
+  if (isOnline && supabaseClient) {
+    syncToSupabase();
+  }
 }
 
 // ==========================================================
