@@ -157,7 +157,7 @@ header h1 {
 }
 .form-row { margin-bottom: 0.75rem; }
 .form-grid .form-row { margin-bottom: 0; }
-label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.95rem; }
+label, .form-label { display: block; font-weight: 500; margin-bottom: 0.25rem; font-size: 0.95rem; }
 input, select, textarea {
   width: 100%;
   padding: 0.5rem 0.75rem;
@@ -823,6 +823,7 @@ body.sheet-open { overflow: hidden; }
             <select id="f_status">
               <option value="pending">📌 รอดำเนินการ</option>
               <option value="progress">🔄 ระหว่างดำเนินการ</option>
+              <option value="waitdeliver">📦 รอส่งมอบงาน</option>
               <option value="waitpay">💰 รอเบิกจ่าย</option>
               <option value="done">✅ แล้วเสร็จ</option>
               <option value="terminated">⛔ บอกเลิกสัญญา</option>
@@ -865,8 +866,9 @@ body.sheet-open { overflow: hidden; }
           <label for="f_detail">รายละเอียด / หมายเหตุ</label>
           <textarea id="f_detail" placeholder="บันทึกรายละเอียด..."></textarea>
         </div>
+    <!-- === เพิ่มรายชื่อคณะกรรมการ === -->
         <div class="form-row">
-          <label>👥 คณะกรรมการตรวจรับพัสดุ / ผู้ควบคุมงาน</label>
+          <div class="form-label">👥 คณะกรรมการตรวจรับพัสดุ / ผู้ควบคุมงาน</div>
           <div class="committee-box" id="committeeBox">
             <div id="committeeRows"></div>
             <button type="button" class="committee-add-btn" id="btnAddCommitteeRow">+ เพิ่มรายชื่อ</button>
@@ -1119,7 +1121,10 @@ function showPinGate() {
   gate.classList.add("show");
   const input = document.getElementById("pinInput");
   input.value = "";
-  input.placeholder = "รหัสผ่าน";
+  
+  // โหลด placeholder ตามสิทธิ์ที่เคยเข้าระบบล่าสุด
+  var prev = currentRole();
+  input.placeholder = "* * * *";
   window.setTimeout(function () { input.focus(); }, 50);
 }
 
@@ -1151,7 +1156,7 @@ function applyRoleUI() {
   // แสดงบั้นร์บอก role
   var badge = document.getElementById("roleBadge");
   if (badge) {
-    badge.textContent = isA ? "🛡️ ผู้ดูแล" : "👁️ ผู้ใช้ทั่วไป";
+    badge.textContent = isA ? "🛡 ผู้ดูแล" : "👁 ผู้ใช้ทั่วไป";
     badge.className = "role-badge " + (isA ? "role-admin" : "role-viewer");
   }
 }
@@ -1397,8 +1402,46 @@ function toNumberOrNull(v) {
   return Number.isFinite(n) ? n : null;
 }
 
+// ฟังก์ชันสร้างแท็บปีอัตโนมัติ
+function renderYearTabs() {
+  const container = document.getElementById('yearTabsContainer');
+  if (!container) return;
+
+  // กวาดหาปี พ.ศ. จากโครงการทั้งหมดที่มีอยู่ในระบบตอนนี้ (ถ้าไม่มีข้อมูล ปีนั้นจะไม่โผล่มา)
+  const yearsSet = new Set();
+  projects.forEach(p => {
+    if (p.year && String(p.year).trim() !== "") {
+      yearsSet.add(String(p.year).trim());
+    }
+  });
+
+  const years = Array.from(yearsSet);
+
+  // ถ้าไม่มีข้อมูลเลย ให้ซ่อนแท็บ
+  if (years.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  // 📍 เรียงลำดับปีจากน้อยไปหามาก (เช่น 2568, 2569)
+  years.sort((a, b) => a.localeCompare(b, 'th', { numeric: true }));
+
+  let html = `<button class="year-tab ${activeYearFilter === 'ทั้งหมด' ? 'active' : ''}" onclick="setYearFilter('ทั้งหมด')">ทั้งหมด</button>`;
+
+  years.forEach(y => {
+    html += `<button class="year-tab ${activeYearFilter === y ? 'active' : ''}" onclick="setYearFilter('${y}')">ปี ${y}</button>`;
+  });
+
+  container.innerHTML = html;
+}
+
+// ฟังก์ชันเมื่อกดเลือกแท็บปี
+function setYearFilter(year) {
+  activeYearFilter = year;
+  renderList(); // สั่งโหลดการ์ดใหม่ตามปีที่เลือก
+}
 // ==========================================================
-//   ฟังก์ชั่นแสดงรายการ
+//   ฟังก์ชั่นแสดงรายการ (อัปเดตระบบจัดเรียงเลขสัญญา)
 // ==========================================================
 function renderList() {
   const container = document.getElementById("projectList");
@@ -1406,29 +1449,86 @@ function renderList() {
   const term = document.getElementById("searchBox").value.trim().toLowerCase();
   const statusFilter = document.getElementById("filterStatus").value;
 
+  // ถ้ามีฟังก์ชันสร้างแท็บปี ให้เรียกใช้งาน
+  if (typeof renderYearTabs === 'function') {
+    renderYearTabs();
+  }
+
   visibleIndexes = [];
   projects.forEach(function (p, i) {
+    // 1. กรองตามสถานะ
     if (statusFilter && normalizeStatus(p.status) !== statusFilter) return;
+    
+    // 2. กรองตามคำค้นหา
     if (term) {
       const hay = [p.name, p.route_no, p.contractor, p.contract_no, p.section_name, p.km_range, p.year]
         .map(function (x) { return x ? String(x).toLowerCase() : ""; }).join(" ");
       if (hay.indexOf(term) === -1) return;
     }
+
+    // 3. กรองตามแท็บปีงบประมาณที่เลือก
+    if (typeof activeYearFilter !== 'undefined' && activeYearFilter !== 'ทั้งหมด') {
+      const py = p.year ? String(p.year).trim() : 'ไม่ระบุ';
+      if (py !== activeYearFilter) return;
+    }
+
     visibleIndexes.push(i);
   });
+
+  // -------------------------------------------------------------
+  // 📍 โค้ดจัดเรียงตาม "เลขที่สัญญา" (ต้องอยู่ตรงนี้ ก่อนเอาไปวนลูปสร้าง HTML)
+  // -------------------------------------------------------------
+  visibleIndexes.sort(function(a, b) {
+    const contractA = projects[a].contract_no ? String(projects[a].contract_no).trim() : "";
+    const contractB = projects[b].contract_no ? String(projects[b].contract_no).trim() : "";
+    
+    if (!contractA && contractB) return 1;
+    if (contractA && !contractB) return -1;
+    if (!contractA && !contractB) return 0;
+    
+    // ฟังก์ชันฉลาด: กวาดหา "ตัวเลขทั้งหมด" ในข้อความ (แก้ปัญหาการเว้นวรรคผิด หรือมีตัวอักษรแปลกๆ)
+    const parseContract = (str) => {
+      const parts = str.match(/\d+/g); // ดึงเฉพาะชุดตัวเลขออกมา
+      if (parts && parts.length >= 2) {
+         return {
+           year: parseInt(parts[parts.length - 1], 10), // ตัวเลขกลุ่มสุดท้าย = ปี พ.ศ.
+           num: parseInt(parts[parts.length - 2], 10)   // ตัวเลขกลุ่มก่อนหน้า = เลขรัน
+         };
+      }
+      return null;
+    };
+
+    const parsedA = parseContract(contractA);
+    const parsedB = parseContract(contractB);
+
+    if (parsedA && parsedB) {
+      // 1. เทียบปี พ.ศ. (เอาปีมาก ขึ้นก่อน เช่น 2569 มาก่อน 2568)
+      if (parsedA.year !== parsedB.year) {
+        return parsedB.year - parsedA.year; 
+      }
+      // 2. ถ้าปีเดียวกัน เอาเลขสัญญาน้อยขึ้นก่อน (เช่น 30 มาก่อน 40)
+      // *ถ้าอยากให้ 40 มาก่อน 30 ให้แก้บรรทัดล่างเป็น: return parsedB.num - parsedA.num;
+      return parsedA.num - parsedB.num; 
+    }
+    
+    // กรณีพิมพ์รูปแบบอื่นที่ดึงเลขไม่ได้ ให้เรียงตามตัวอักษร
+    return contractA.localeCompare(contractB, 'th', { numeric: true });
+  });
+  // -------------------------------------------------------------
 
   countEl.textContent = (term || statusFilter)
     ? "(แสดง " + visibleIndexes.length + " จากทั้งหมด " + projects.length + " รายการ)"
     : "(ทั้งหมด " + projects.length + " รายการ)";
 
+  // ===== เริ่มสร้าง HTML ของการ์ด (ดึงจาก index ที่ถูกจัดเรียงแล้ว) =====
   if (projects.length === 0) {
     container.innerHTML = '<div class="empty">ยังไม่มีรายการโครงการ<br><small>กดปุ่ม "เพิ่มโครงการ" หรือ "ดึงข้อมูลจาก Cloud" เพื่อเริ่มต้น</small></div>';
-    refreshDetailSheet();
+    if (typeof refreshDetailSheet === 'function') refreshDetailSheet();
     return;
   }
   if (visibleIndexes.length === 0) {
     container.innerHTML = '<div class="empty">ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา</div>';
-    refreshDetailSheet();
+    if (typeof refreshDetailSheet === 'function') refreshDetailSheet();
     return;
   }
 
@@ -1438,14 +1538,13 @@ function renderList() {
   });
   html += "</div>";
 
-  if (pendingDeletes.length > 0) {
+  if (typeof pendingDeletes !== 'undefined' && pendingDeletes.length > 0) {
     html += '<div class="field-hint">🕓 มี ' + pendingDeletes.length +
       " รายการรอลบบน Cloud — กด “ส่งข้อมูลขึ้น Cloud” เพื่อดำเนินการให้เสร็จ</div>";
   }
   container.innerHTML = html;
 
-  // ถ้าแท็บรายละเอียดเปิดอยู่ ให้อัปเดตเนื้อหาตามข้อมูลใหม่เสมอ
-  refreshDetailSheet();
+  if (typeof refreshDetailSheet === 'function') refreshDetailSheet();
 }
 
 // ==========================================================
