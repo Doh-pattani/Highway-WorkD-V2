@@ -1026,6 +1026,19 @@ const CAN = {
   admin:  { create: true,  read: true, update: true,  delete: true  },
   viewer: { create: false, read: true, update: false, delete: false }
 };
+
+function currentRole() {
+  try { return localStorage.getItem(PIN_ROLE_KEY) || "viewer"; } 
+  catch (e) { return "viewer"; }
+}
+
+// 📍 ฟังก์ชัน can ต้องประกาศไว้ตรงนี้ (อยู่นอกปีกกาใดๆ)
+const can = (action) => !!CAN[currentRole()]?.[action];
+
+// Alias เพื่อความเข้ากันได้กับโค้ดโครงสร้างเดิม
+function isAdmin() {
+  return can('create');
+}
 // ==========================================================
 // ============ ผังฟิลด์: id ในฟอร์ม  ↔  คอลัมน์ใน Supabase ============
 // แก้ไขบั๊กหลัก: โค้ดเดิมเรียก projectName / routeName / projectStatus / projectNote
