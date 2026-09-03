@@ -1022,7 +1022,10 @@ const VIEWER_PIN = "0000";   // 👁️ PIN สำหรับผู้ใช้
 const PIN_SESSION_KEY = "highway_workd_unlocked_until";
 const PIN_ROLE_KEY = "highway_workd_role";       // เก็บ role: "admin" หรือ "viewer"
 const PIN_SESSION_HOURS = 12;   // เข้ารหัสครั้งหนึ่ง จำไว้กี่ชั่วโมง
-
+const CAN = {
+  admin:  { create: true,  read: true, update: true,  delete: true  },
+  viewer: { create: false, read: true, update: false, delete: false }
+};
 // ==========================================================
 // ============ ผังฟิลด์: id ในฟอร์ม  ↔  คอลัมน์ใน Supabase ============
 // แก้ไขบั๊กหลัก: โค้ดเดิมเรียก projectName / routeName / projectStatus / projectNote
@@ -2167,7 +2170,10 @@ function mergeCloudRows(data) {
 //   ฟังก์ชั่นซิงค์: ดึงข้อมูลจาก Cloud (ครบทุกคอลัมน์)
 // ==========================================================
 async function syncFromSupabase() {
-  if (!can('read')) { showToast("⛔ ไม่มีสิทธิ์ดึงข้อมูล", "error"); return; }
+  // ดักการเช็คสิทธิ์ (ถ้ายังไม่ได้ตั้งค่า read ให้ถือว่าผ่านไปก่อนเพื่อป้องกันบั๊ก)
+  const hasReadAccess = can('read') !== false; 
+  if (!hasReadAccess) { showToast("⛔ ไม่มีสิทธิ์ดึงข้อมูล", "error"); return; }
+  
   if (!supabaseClient) { showToast("⚠️ ยังไม่ได้เชื่อมต่อ Supabase", "error"); return; }
   
   const btn = document.getElementById("btnDownload");
@@ -2178,6 +2184,7 @@ async function syncFromSupabase() {
     const res = await supabaseClient.from(TABLE_NAME).select("*").order("created_at", { ascending: false, nullsFirst: false });
     if (res.error) throw res.error;
     const data = res.data || [];
+    
     if (data.length === 0) { showToast("ℹ️ ยังไม่มีข้อมูลใน Cloud", "info"); return; }
     
     // จัดเตรียมข้อมูลที่ได้จาก Cloud
@@ -2191,23 +2198,19 @@ async function syncFromSupabase() {
       return o;
     });
 
-    // 📍 ระบบจัดการข้อมูลซ้ำ (Smart Merge)
+    // ระบบจัดการข้อมูลซ้ำ (Smart Merge)
     if (!can('create')) {
-      // 1. ถ้าเป็น Viewer ให้แทนที่ข้อมูลทั้งหมดด้วย Cloud 100%
+      // สำหรับ Viewer: แทนที่ข้อมูลทั้งหมดด้วย Cloud 100%
       projects = cloudProjects;
       showToast(`✅ อัปเดตข้อมูลล่าสุดจาก Cloud สำเร็จ`, "success");
     } else {
-      // 2. ถ้าเป็น Admin ใช้ Cloud เป็นหลัก แล้วดึงเฉพาะ Draft (💻) ที่ไม่ซ้ำมาต่อท้าย
+      // สำหรับ Admin: เก็บ Draft ที่ไม่ซ้ำไว้ แล้วต่อท้ายด้วยข้อมูล Cloud
       const newProjects = [...cloudProjects];
       let keptDrafts = 0;
 
       projects.forEach(p => {
-        // หากไม่มี cloud_id ถือว่าเป็น Draft ในเครื่อง
         if (!p.cloud_id) {
-          // เช็คว่า Draft ตัวนี้ไปซ้ำกับข้อมูล Cloud หรือไม่ (เช็คจากเลขสัญญาและชื่อ)
-          const isDuplicate = cloudProjects.some(cp => 
-            cp.name === p.name && cp.contract_no === p.contract_no
-          );
+          const isDuplicate = cloudProjects.some(cp => cp.name === p.name && cp.contract_no === p.contract_no);
           if (!isDuplicate) {
             newProjects.push(p);
             keptDrafts++;
@@ -2222,7 +2225,9 @@ async function syncFromSupabase() {
     saveToLocal(); 
     renderList();
   } catch (e) { 
-    showToast("❌ ดึงข้อมูลไม่สำเร็จ", "error"); 
+    console.error("Supabase Error:", e);
+    // 📍 แสดงข้อความ Error จริงๆ ออกมาให้เห็น
+    showToast("❌ ข้อผิดพลาด: " + (e.message || "ดึงข้อมูลไม่สำเร็จ"), "error"); 
   } finally { 
     btn.disabled = false; btn.textContent = label; 
   }
