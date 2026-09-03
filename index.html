@@ -594,8 +594,15 @@ body.sheet-open { overflow: hidden; }
   font-size: 0.82rem;
   margin-top: 0.7rem;
 }
-.pin-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.9rem; }
-.pin-hint-warn { color: #b91c1c; font-weight: 600; }
+.pin-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.9rem;
+}
+.pin-hint-warn {
+  color: #b91c1c;
+  font-weight: 600;
+}
 .pin-role-select {
   display: flex;
   gap: 1rem;
@@ -751,6 +758,8 @@ body.sheet-open { overflow: hidden; }
     <input type="password" id="pinInput" placeholder="รหัสผ่าน" autocomplete="current-password" inputmode="numeric">
     <button type="button" class="btn btn-primary" id="btnPinSubmit">เข้าสู่ระบบ</button>
     <div id="pinError" class="pin-error" role="alert" hidden>รหัสผ่านไม่ถูกต้อง ลองอีกครั้ง</div>
+    <div class="pin-hint">🛡️ <strong>ผู้ดูแล</strong> = เพิ่ม/แก้ไข/ลบ/นำเข้า-ส่งออก/Cloud</div>
+    <div class="pin-hint">👁️ <strong>ผู้ใช้ทั่วไป</strong> = ดูได้อย่างเดียว</div>
   </div>
 </div>
 
@@ -780,6 +789,7 @@ body.sheet-open { overflow: hidden; }
           <option value="">ทุกสถานะ</option>
           <option value="pending">📌 รอดำเนินการ</option>
           <option value="progress">🔄 ระหว่างดำเนินการ</option>
+          <option value="waitdeliver">📦 รอส่งมอบงาน</option>
           <option value="waitpay">💰 รอเบิกจ่าย</option>
           <option value="done">✅ แล้วเสร็จ</option>
           <option value="terminated">⛔ บอกเลิกสัญญา</option>
@@ -960,6 +970,7 @@ const SYNC_COLUMNS = FIELDS.map(function (f) { return f.col; });
 const STATUS_LABELS = {
   pending:    "📌 รอดำเนินการ",
   progress:   "🔄 ระหว่างดำเนินการ",
+  waitdeliver:"📦 รอส่งมอบงาน",
   waitpay:    "💰 รอเบิกจ่าย",
   done:       "✅ แล้วเสร็จ",
   terminated: "⛔ บอกเลิกสัญญา"
@@ -969,6 +980,7 @@ const STATUS_LABELS = {
 const STATUS_DB_TEXT = {
   pending:    "รอดำเนินการ",
   progress:   "ระหว่างดำเนินการ",
+  waitdeliver:"รอส่งมอบงาน",
   waitpay:    "รอเบิกจ่าย",
   done:       "แล้วเสร็จ",
   terminated: "บอกเลิกสัญญา"
@@ -986,6 +998,9 @@ const STATUS_ALIASES = {
   "ongoing": "progress", "active": "progress", "working": "progress",
   "ระหว่างดำเนินการ": "progress", "อยู่ระหว่างดำเนินการ": "progress",
   "กำลังดำเนินงาน": "progress", "กำลังดำเนินการ": "progress", "ดำเนินการ": "progress",
+
+  // รอส่งมอบงาน
+  "waitdeliver": "waitdeliver", "รอส่งมอบ": "waitdeliver", "รอส่งมอบงาน": "waitdeliver",
 
   // รอเบิกจ่าย
   "waitpay": "waitpay", "wait_payment": "waitpay", "pending_payment": "waitpay",
