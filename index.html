@@ -1107,6 +1107,8 @@ let visibleIndexes = [];   // map แถวที่แสดง -> index จร
 let activeDetailIndex = -1;      // index โครงการที่กำลังเปิดแท็บรายละเอียด
 let activeDetailKey = null;      // key ของโครงการนั้น (ทนต่อการเรียงลำดับใหม่)
 let sheetHistoryPushed = false;  // เพิ่ม history entry ไว้หรือยัง (ใช้กับปุ่มย้อนกลับ)
+// ตัวแปรเก็บค่าปีที่กำลังเลือกอยู่
+let activeYearFilter = 'ทั้งหมด'; 
 
 // ==========================================================
 // เริ่มต้นแอป
