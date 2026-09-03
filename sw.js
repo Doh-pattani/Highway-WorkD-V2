@@ -137,25 +137,18 @@ self.addEventListener('activate', e => {
 // Event: fetch — จับคู่กลยุทธ์ที่เหมาะสม
 // ============================================================
 self.addEventListener('fetch', e => {
-  // ข้าม POST/PUT/DELETE (การเขียนข้อมูลต้องผ่านเครือข่ายเท่านั้น)
-  if (e.request.method !== 'GET') return;
+  // 📍 ดักไว้ตรงนี้: ข้ามการแคชถ้าไม่ใช่ GET หรือเป็น URL ของส่วนขยายเบราว์เซอร์
+  if (e.request.method !== 'GET' || !e.request.url.startsWith('http')) {
+    return;
+  }
 
   const strategy = getStrategy(e.request);
-
   switch (strategy) {
-    case 'network-only':
-      e.respondWith(networkOnly(e.request));
-      break;
-    case 'network-first':
-      e.respondWith(networkFirst(e.request));
-      break;
-    case 'stale-while-revalidate':
-      e.respondWith(staleWhileRevalidate(e.request));
-      break;
+    case 'network-only': e.respondWith(networkOnly(e.request)); break;
+    case 'network-first': e.respondWith(networkFirst(e.request)); break;
+    case 'stale-while-revalidate': e.respondWith(staleWhileRevalidate(e.request)); break;
     case 'cache-first':
-    default:
-      e.respondWith(cacheFirst(e.request));
-      break;
+    default: e.respondWith(cacheFirst(e.request)); break;
   }
 });
 
