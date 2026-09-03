@@ -1980,35 +1980,115 @@ function readForm() {
 // ==========================================================
 //   ฟังก์ชั่นบันทึกโครงการ
 // ==========================================================
-function saveProject(e) {
-  e.preventDefault();
-  if (!isAdmin()) { showToast("⛔ ต้องใช้สิทธิ์ผู้ดูแลถึงจะบันทึกได้", "error"); return; }
-  const data = readForm();
-  if (!data) return;
+async function saveProject(formData, existingIndex = null) {
+  try {
+    // 📋 เตรียมข้อมูล
+    const project = {
+      id: formData.id || generateId(),
+      cloud_id: formData.cloud_id || null,
+      name: formData.name || "",
+      year: formData.year || "",
+      source: formData.source || "",
+      status: normalizeStatus(formData.status || "รอดำเนินการ"),
+      contract_no: formData.contract_no || "",
+      contractor: formData.contractor || "",
+      route_no: formData.route_no || "",
+      section_name: formData.section_name || "",
+      km_range: formData.km_range || "",
+      progress: clampProgress(Number(formData.progress) || 0),
+      budget: formData.budget ? Number(formData.budget) : null,
+      disbursed: formData.disbursed ? Number(formData.disbursed) : null,
+      detail: formData.detail || "",
+      persons: formData.persons || [],
+      updated_at: new Date().toISOString(),
+      created_at: formData.created_at || new Date().toISOString()
+    };
 
-  const editId = document.getElementById("editId").value;
-  const editCloudId = document.getElementById("editCloudId").value;
-  const now = new Date().toISOString();
+    let isNew = (existingIndex === null);
 
-  data.updated_at = now;
-  if (editCloudId !== "") {
-    const asNum = Number(editCloudId);
-    data.cloud_id = Number.isFinite(asNum) && String(asNum) === editCloudId ? asNum : editCloudId;
+    // 💾 บันทึกลงในเครื่องก่อนเสมอ
+    if (isNew) {
+      projects.unshift(project);
+    } else {
+      projects[existingIndex] = project;
+    }
+    saveToLocal();
+    renderList();
+    closeFormSheet();
+
+    // ☁️ ส่งขึ้น Cloud ทันที (ถ้ามีการเชื่อมต่อ)
+    if (supabaseClient && navigator.onLine) {
+      try {
+        if (project.cloud_id) {
+          // ✅ มี cloud_id อยู่แล้ว → อัปเดต
+          const { error } = await supabaseClient
+            .from(TABLE_NAME)
+            .update({
+              name: project.name,
+              year: project.year,
+              source: project.source,
+              status: project.status,
+              contract_no: project.contract_no,
+              contractor: project.contractor,
+              route_no: project.route_no,
+              section_name: project.section_name,
+              km_range: project.km_range,
+              progress: project.progress,
+              budget: project.budget,
+              disbursed: project.disbursed,
+              detail: project.detail,
+              persons: project.persons,
+              updated_at: new Date().toISOString()
+            })
+            .eq("id", project.cloud_id);
+          if (error) throw error;
+          showToast("✅ บันทึกและอัปเดตบน Cloud แล้ว", "success");
+        } else {
+          // 🆕 ยังไม่มี cloud_id → เพิ่มรายการใหม่
+          const { data, error } = await supabaseClient
+            .from(TABLE_NAME)
+            .insert({
+              name: project.name,
+              year: project.year,
+              source: project.source,
+              status: project.status,
+              contract_no: project.contract_no,
+              contractor: project.contractor,
+              route_no: project.route_no,
+              section_name: project.section_name,
+              km_range: project.km_range,
+              progress: project.progress,
+              budget: project.budget,
+              disbursed: project.disbursed,
+              detail: project.detail,
+              persons: project.persons
+            })
+            .select()
+            .single();
+          if (error) throw error;
+          // 📌 บันทึก cloud_id กลับลงในข้อมูล เพื่อไม่ให้ซ้ำอีก
+          const idx = projects.findIndex(p => p.id === project.id);
+          if (idx !== -1) {
+            projects[idx].cloud_id = data.id;
+            projects[idx].created_at = data.created_at;
+            projects[idx].updated_at = data.updated_at;
+            saveToLocal();
+            renderList();
+          }
+          showToast("✅ บันทึกและส่งขึ้น Cloud แล้ว", "success");
+        }
+      } catch (cloudErr) {
+        console.warn("Cloud sync skipped:", cloudErr);
+        showToast("⚠️ บันทึกในเครื่องแล้ว — จะส่งขึ้น Cloud อัตโนมัติเมื่อพร้อม", "info");
+      }
+    } else {
+      showToast("✅ บันทึกในเครื่องแล้ว", "success");
+    }
+
+  } catch (e) {
+    console.error("saveProject error:", e);
+    showToast("❌ บันทึกไม่สำเร็จ", "error");
   }
-
-  if (editId === "") {
-    data.created_at = now;
-    projects.unshift(data);
-    showToast("✅ เพิ่มโครงการสำเร็จ (อย่าลืมส่งขึ้น Cloud)", "success");
-  } else {
-    const idx = parseInt(editId, 10);
-    projects[idx] = Object.assign({}, projects[idx], data);
-    showToast("✅ อัปเดตโครงการสำเร็จ (อย่าลืมส่งขึ้น Cloud)", "success");
-  }
-
-  saveToLocal();
-  renderList();
-  hideForm();
 }
 
 // ==========================================================
