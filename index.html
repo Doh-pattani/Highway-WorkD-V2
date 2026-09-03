@@ -231,6 +231,7 @@ td.num, th.num { text-align: right; }
 .pcard:active { transform: translateY(0); }
 .pcard[data-status="pending"]    { border-left-color: #9ca3af; }
 .pcard[data-status="progress"]   { border-left-color: #2563eb; }
+.pcard[data-status="waitdeliver"]{ border-left-color: #8b5cf6; }
 .pcard[data-status="waitpay"]    { border-left-color: #d97706; }
 .pcard[data-status="done"]       { border-left-color: #059669; }
 .pcard[data-status="terminated"] { border-left-color: #dc2626; }
@@ -280,7 +281,12 @@ td.num, th.num { text-align: right; }
   line-height: 1.4;
   word-break: break-word;
 }
-.pcard-meta { display: flex; flex-wrap: wrap; gap: 0.35rem; align-items: center; }
+.pcard-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
 .pcard-hint {
   font-size: 0.75rem;
   color: var(--text-muted);
@@ -288,7 +294,11 @@ td.num, th.num { text-align: right; }
   margin-top: auto;
 }
 
-.pcard-tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.pcard-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
 .tag {
   display: inline-block;
   background: #eff6ff;
@@ -299,9 +309,15 @@ td.num, th.num { text-align: right; }
   font-size: 0.78rem;
   white-space: nowrap;
 }
-.tag-muted { background: #f3f4f6; color: #4b5563; border-color: #e5e7eb; }
+.tag-muted {
+  background: #f3f4f6;
+  color: #4b5563;
+  border-color: #e5e7eb;
+}
 
-.pcard-progress { margin-top: 0.1rem; }
+.pcard-progress {
+  margin-top: 0.1rem;
+}
 .pcard-progress-label {
   display: flex;
   justify-content: space-between;
@@ -309,11 +325,57 @@ td.num, th.num { text-align: right; }
   color: var(--text-muted);
   margin-bottom: 0.25rem;
 }
-.pcard-progress-label strong { color: var(--text-main); }
-.progress-track.wide { width: 100%; height: 9px; margin-right: 0; display: block; }
+.pcard-progress-label strong {
+  color: var(--text-main);
+}
+.progress-track.wide {
+  width: 100%;
+  height: 9px;
+  margin-right: 0;
+  display: block;
+}
+
+/* ===== แท็บกรองปีงบประมาณ ===== */
+.year-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -ms-overflow-style: none; /* ซ่อน Scrollbar ของ IE/Edge */
+  scrollbar-width: none; /* ซ่อน Scrollbar ของ Firefox */
+}
+.year-tabs::-webkit-scrollbar {
+  display: none; /* ซ่อน Scrollbar ของ Chrome/Safari */
+}
+
+.year-tab {
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: #f3f4f6;
+  color: var(--text-muted);
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: 'Kanit', sans-serif;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.year-tab:hover {
+  background: #e5e7eb;
+}
+.year-tab.active {
+  background: var(--primary);
+  color: #ffffff;
+  border-color: var(--primary);
+  box-shadow: 0 4px 10px rgba(27, 73, 101, 0.25);
+}
 
 /* ===== แท็บรายละเอียด (Sheet) — เลื่อนขึ้นจากด้านล่าง ===== */
-#detailSheet[hidden] { display: none; }
+#detailSheet[hidden] {
+  display: none;
+}
 #detailSheet {
   position: fixed;
   inset: 0;
@@ -429,9 +491,17 @@ td.num, th.num { text-align: right; }
   padding: 0.6rem 0.7rem;
   margin-bottom: 0.85rem;
 }
-.sheet-figures dt { font-size: 0.75rem; color: var(--text-muted); }
-.sheet-figures dd { font-size: 1rem; font-weight: 600; font-variant-numeric: tabular-nums; }
-.sheet-figures dd small { font-weight: 400; color: var(--text-muted); font-size: 0.75rem; }
+.sheet-figures dt {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.sheet-figures dd {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.detail-block {
+  margin-top: 0.85rem;
+}
 
 .detail-block { margin-top: 0.85rem; }
 .detail-block > span.block-label {
@@ -499,6 +569,7 @@ body.sheet-open { overflow: hidden; }
 }
 .status-pending    { background: #e5e7eb; color: #374151; }
 .status-progress   { background: #dbeafe; color: #1e40af; }
+.status-waitdeliver{ background: #ede9fe; color: #5b21b6; }
 .status-waitpay    { background: #fef3c7; color: #92400e; }
 .status-done       { background: #d1fae5; color: #065f46; }
 .status-terminated { background: #fee2e2; color: #991b1b; }
@@ -884,7 +955,12 @@ body.sheet-open { overflow: hidden; }
 
     <!-- === ตารางแสดงรายการ === -->
     <div class="card">
-      <h3>รายการโครงการ <span id="projectCount" style="font-size:0.85rem;color:var(--text-muted);font-weight:normal;"></span></h3>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 0.5rem;">
+        <h3 style="margin: 0;">รายการโครงการ <span id="projectCount" style="font-size:0.85rem;color:var(--text-muted);font-weight:normal;"></span></h3>
+      </div>
+	  
+    <!-- 📍 จุดแสดงแท็บปีงบประมาณ -->
+      <div id="yearTabsContainer" class="year-tabs"></div>
       <div id="projectList"></div>
     </div>
   </div>
